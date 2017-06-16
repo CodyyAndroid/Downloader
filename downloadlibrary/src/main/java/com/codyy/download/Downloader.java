@@ -32,6 +32,19 @@ public class Downloader {
      */
     private volatile static boolean bound = false;
     private Context context;
+    /**
+     * 下载服务
+     */
+    private DownloadService mDownloadService;
+    /**
+     * 下载服务连接成功前,缓存接收下载状态任务
+     */
+    private Map<String, DownLoadListener> mReceiveDownloadStatus = new HashMap<>();
+    private Map<String, DownloadRateListener> mReceiveDownloadRate = new HashMap<>();
+    /**
+     * 下载服务连接成功前,缓存下载任务
+     */
+    private Map<String, FileEntity> mDownTasks = new HashMap<>();
 
     private Downloader(Context context) {
         this.context = context;
@@ -51,20 +64,6 @@ public class Downloader {
         }
         return INSTANCE;
     }
-
-    /**
-     * 下载服务
-     */
-    private DownloadService mDownloadService;
-    /**
-     * 下载服务连接成功前,缓存接收下载状态任务
-     */
-    private Map<String, DownLoadListener> mReceiveDownloadStatus = new HashMap<>();
-    private Map<String, DownloadRateListener> mReceiveDownloadRate = new HashMap<>();
-    /**
-     * 下载服务连接成功前,缓存下载任务
-     */
-    private Map<String, FileEntity> mDownTasks = new HashMap<>();
 
     /**
      * 开始下载服务
