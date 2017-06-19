@@ -248,11 +248,13 @@ public class DownloadDaoImpl implements DownloadDao {
                 DownloadTable.COLUMN_NAME_STATUS,
                 DownloadTable.COLUMN_NAME_THUMBNAILS
         };
+        String selection = DownloadTable.COLUMN_NAME_STATUS + DBSelection.SELECTION_EQUAL;
+        String[] selectionArgs = {DownloadFlag.COMPLETED + ""};
         Cursor cursor = mDbHelper.getReadableDatabase().query(
                 DownloadTable.TABLE_NAME,
                 projection,
-                null,
-                null,
+                selection,
+                selectionArgs,
                 null,
                 null,
                 null
