@@ -103,7 +103,9 @@ public class DownloadService extends Service implements Handler.Callback {
             mDownloadDao.save(new DownloadEntity(0, 0, downloadUrl, target, TextUtils.isEmpty(fileName) ? downloadUrl.substring(downloadUrl.lastIndexOf(File.separator) + 1) : fileName, DownloadFlag.WAITING, TextUtils.isEmpty(thumbnails) ? "" : thumbnails));
         } else {
             DownloadEntity entity = mDownloadDao.query(downloadUrl);
-            if (entity.getStatus() != DownloadFlag.COMPLETED) {
+            if (entity.getStatus() == DownloadFlag.COMPLETED) {
+                return;
+            } else {
                 mDownloadDao.updateProgress(downloadUrl, entity.getCurrent(), entity.getTotal(), DownloadFlag.WAITING);
             }
         }
