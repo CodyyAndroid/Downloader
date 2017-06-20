@@ -181,6 +181,7 @@ public class Downloader {
      * 手动启动全部下载任务
      */
     public void startAll() {
+        if (!bound) startDownloadService();
         if (mDownloadService != null) {
             mDownloadService.startAll();
         }
