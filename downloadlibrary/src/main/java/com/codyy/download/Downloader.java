@@ -75,11 +75,10 @@ public class Downloader {
         context.bindService(intent, new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
+                mDownloadService = ((DownloadService.DownloadBinder) service).getDownloadService();
                 if (!bound && mConnectedListener != null) {
                     mConnectedListener.onConnected();
                 }
-                bound = true;
-                mDownloadService = ((DownloadService.DownloadBinder) service).getDownloadService();
                 for (String key : mDownTasks.keySet()) {
                     mDownloadService.download(key, mDownTasks.get(key).path, mDownTasks.get(key).fileName, mDownTasks.get(key).thumbnails);
                 }
@@ -92,6 +91,7 @@ public class Downloader {
                 mDownTasks.clear();
                 mReceiveDownloadStatus.clear();
                 mReceiveDownloadRate.clear();
+                bound = true;
             }
 
             @Override
