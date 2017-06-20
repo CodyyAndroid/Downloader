@@ -11,6 +11,7 @@ import android.support.annotation.NonNull;
 import com.codyy.download.entity.DownloadEntity;
 import com.codyy.download.entity.FileEntity;
 import com.codyy.download.service.DownLoadListener;
+import com.codyy.download.service.DownloadConnectedListener;
 import com.codyy.download.service.DownloadRateListener;
 import com.codyy.download.service.DownloadService;
 
@@ -74,6 +75,9 @@ public class Downloader {
         context.bindService(intent, new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
+                if (!bound && mConnectedListener != null) {
+                    mConnectedListener.onConnected();
+                }
                 bound = true;
                 mDownloadService = ((DownloadService.DownloadBinder) service).getDownloadService();
                 for (String key : mDownTasks.keySet()) {
@@ -283,5 +287,11 @@ public class Downloader {
             return mDownloadService.getDownloadRecord(url);
         }
         return null;
+    }
+
+    private DownloadConnectedListener mConnectedListener;
+
+    public void setOnConnectedListener(DownloadConnectedListener listener) {
+        this.mConnectedListener = listener;
     }
 }
