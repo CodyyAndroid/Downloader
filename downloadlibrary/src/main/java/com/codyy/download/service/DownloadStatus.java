@@ -38,7 +38,7 @@ public class DownloadStatus implements Parcelable {
     /**
      * 获得格式化的总Size
      *
-     * @return example: 2KB , 10MB
+     * @return example: 2K , 10M
      */
     public String getFormatTotalSize() {
         return formatSize(totalSize);
@@ -51,7 +51,7 @@ public class DownloadStatus implements Parcelable {
     /**
      * 获得格式化的状态字符串
      *
-     * @return example: 2MB/36MB
+     * @return example: 2M/36M
      */
     public String getFormatStatusString() {
         return getFormatDownloadSize() + "/" + getFormatTotalSize();
@@ -105,13 +105,13 @@ public class DownloadStatus implements Parcelable {
         double t = ((((size / 1024.0) / 1024.0) / 1024.0) / 1024.0);
         DecimalFormat dec = new DecimalFormat("0.00");
         if (t > 1) {
-            hrSize = dec.format(t).concat(" TB");
+            hrSize = dec.format(t).concat(" T");
         } else if (g > 1) {
-            hrSize = dec.format(g).concat(" GB");
+            hrSize = dec.format(g).concat(" G");
         } else if (m > 1) {
-            hrSize = dec.format(m).concat(" MB");
+            hrSize = dec.format(m).concat(" M");
         } else if (k > 1) {
-            hrSize = dec.format(k).concat(" KB");
+            hrSize = dec.format(k).concat(" K");
         } else {
             hrSize = dec.format(b).concat(" B");
         }
