@@ -202,8 +202,10 @@ public class DownloadService extends Service implements Handler.Callback {
      */
     public void delete(boolean isRetained, @NonNull String... urls) {
         for (String url : urls) {
-            mDownThreadMap.get(url).pause();
-            mDownThreadMap.remove(url);
+            if (mDownThreadMap.get(url) != null) {
+                mDownThreadMap.get(url).pause();
+                mDownThreadMap.remove(url);
+            }
             mDownloadDao.delete(url, isRetained);
             sendDeleteMessage(DownloadFlag.DELETED, url);
         }
