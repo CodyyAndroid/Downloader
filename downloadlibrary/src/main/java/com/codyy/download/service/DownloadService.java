@@ -50,7 +50,7 @@ public class DownloadService extends Service implements Handler.Callback {
         super.onCreate();
         mHandler = new Handler(this);
         mDownloadDao = DownloadDaoImpl.getInstance(this);
-        startAll();
+//        startAll();
     }
 
     @Override
