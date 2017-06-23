@@ -12,5 +12,5 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.SOURCE)
 public @interface DBSelection {
     String SELECTION_EQUAL = "=?";
-    String SELECTION_UNEQUAL = " NOT IN (?,?)";
+    String SELECTION_UNEQUAL = " NOT IN (?)";
 }

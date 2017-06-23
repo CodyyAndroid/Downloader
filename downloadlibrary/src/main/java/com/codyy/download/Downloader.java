@@ -278,6 +278,16 @@ public class Downloader {
     }
 
     /**
+     * 获取未完成的下载记录
+     */
+    public List<DownloadEntity> getDownloadingRecords() {
+        if (mDownloadService != null) {
+            return mDownloadService.getDownloadingRecords();
+        }
+        return new ArrayList<>();
+    }
+
+    /**
      * 获取指定下载记录
      *
      * @param url 下载地址

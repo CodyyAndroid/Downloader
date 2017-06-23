@@ -66,7 +66,11 @@ public class MultiDownloadActivity extends AppCompatActivity {
     }
 
     public void pauseAll(View view) {
+        for (DownloadEntity entity : Downloader.getInstance(this).getDownloadingRecords()) {
+            Log.e("entity", entity.toString());
+        }
         Downloader.getInstance(this).pauseAll();
+
     }
 
     public void delete(View view) {

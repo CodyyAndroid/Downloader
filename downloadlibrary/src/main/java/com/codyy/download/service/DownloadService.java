@@ -253,6 +253,14 @@ public class DownloadService extends Service implements Handler.Callback {
     }
 
     /**
+     * 获取未完成的下载记录
+     * @return 未完成的下载记录
+     */
+    public List<DownloadEntity> getDownloadingRecords() {
+        return mDownloadDao.queryDoingOn();
+    }
+
+    /**
      * 根据url获取下载记录
      */
     public DownloadEntity getDownloadRecord(String url) {
