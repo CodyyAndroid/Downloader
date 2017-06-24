@@ -254,6 +254,7 @@ public class DownloadService extends Service implements Handler.Callback {
 
     /**
      * 获取未完成的下载记录
+     *
      * @return 未完成的下载记录
      */
     public List<DownloadEntity> getDownloadingRecords() {
@@ -274,7 +275,7 @@ public class DownloadService extends Service implements Handler.Callback {
         private RandomAccessFile currentPart;
         int length;
         private HttpURLConnection conn;
-        private boolean isPause;
+        private volatile boolean isPause;
         private InputStream inStream;
         private String downloadUrl;
         private String savePath;
@@ -403,7 +404,7 @@ public class DownloadService extends Service implements Handler.Callback {
         Message message = new Message();
         message.setData(getBundle(downloadUrl));
         message.what = status;
-        sendMessage(message);
+        sendMessage(message, 100L);
     }
 
     private void sendProgressMessage(DownloadStatus status, String downloadUrl) {
@@ -430,9 +431,13 @@ public class DownloadService extends Service implements Handler.Callback {
         sendMessage(message);
     }
 
-    private void sendMessage(Message message) {
+    private void sendMessage(Message message, long delayMillis) {
         if (mHandler != null)
-            mHandler.sendMessage(message);
+            mHandler.sendMessageDelayed(message, delayMillis);
+    }
+
+    private void sendMessage(Message message) {
+        sendMessage(message, 0L);
     }
 
     private Bundle getBundle(String downloadUrl) {
