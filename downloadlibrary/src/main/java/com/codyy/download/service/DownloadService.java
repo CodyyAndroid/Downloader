@@ -403,7 +403,7 @@ public class DownloadService extends Service implements Handler.Callback {
         Message message = new Message();
         message.setData(getBundle(downloadUrl));
         message.what = status;
-        sendMessage(message, 100L);
+        sendMessage(message);
     }
 
     private void sendProgressMessage(DownloadStatus status, String downloadUrl) {
@@ -430,13 +430,10 @@ public class DownloadService extends Service implements Handler.Callback {
         sendMessage(message);
     }
 
-    private void sendMessage(Message message, long delayMillis) {
-        if (mHandler != null)
-            mHandler.sendMessageDelayed(message, delayMillis);
-    }
-
     private void sendMessage(Message message) {
-        sendMessage(message, 0L);
+        if (mHandler != null) {
+            mHandler.sendMessage(message);
+        }
     }
 
     private Bundle getBundle(String downloadUrl) {
