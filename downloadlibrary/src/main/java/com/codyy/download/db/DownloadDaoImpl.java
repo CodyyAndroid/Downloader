@@ -68,6 +68,38 @@ public class DownloadDaoImpl implements DownloadDao {
     }
 
     @Override
+    public synchronized boolean isPaused(String url) {
+        boolean isPaused = false;
+        String[] projection = {
+                DownloadTable.COLUMN_NAME_DOWNLOAD_URL,
+                DownloadTable.COLUMN_NAME_CURRENT_POSITION,
+                DownloadTable.COLUMN_NAME_TOTAL_SIZE,
+                DownloadTable.COLUMN_NAME_SAVE_PATH,
+                DownloadTable.COLUMN_NAME_FILE_NAME,
+                DownloadTable.COLUMN_NAME_STATUS,
+                DownloadTable.COLUMN_NAME_THUMBNAILS
+        };
+        String selection = DownloadTable.COLUMN_NAME_DOWNLOAD_URL + DBSelection.SELECTION_EQUAL;
+        String[] selectionArgs = {url};
+        Cursor cursor = mDbHelper.getReadableDatabase().query(
+                DownloadTable.TABLE_NAME,
+                projection,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                null
+        );
+        while (cursor.moveToNext()) {
+            if (Integer.parseInt(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_STATUS))) == DownloadFlag.PAUSED) {
+                isPaused = true;
+            }
+        }
+        cursor.close();
+        return isPaused;
+    }
+
+    @Override
     public synchronized boolean save(DownloadEntity entry) {
         SQLiteDatabase database = mDbHelper.getWritableDatabase();
         database.beginTransaction();

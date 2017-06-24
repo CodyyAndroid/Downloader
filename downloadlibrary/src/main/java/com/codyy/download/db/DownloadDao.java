@@ -16,6 +16,11 @@ public interface DownloadDao {
     boolean isExist(String url);
 
     /**
+     * 检查本地数据是否暂停下载状态
+     */
+    boolean isPaused(String url);
+
+    /**
      * 保存下载的具体信息
      *
      * @param entry 具体信息

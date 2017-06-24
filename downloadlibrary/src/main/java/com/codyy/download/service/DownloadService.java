@@ -275,7 +275,6 @@ public class DownloadService extends Service implements Handler.Callback {
         private RandomAccessFile currentPart;
         int length;
         private HttpURLConnection conn;
-        private volatile boolean isPause;
         private InputStream inStream;
         private String downloadUrl;
         private String savePath;
@@ -291,10 +290,8 @@ public class DownloadService extends Service implements Handler.Callback {
          * 暂停下载
          */
         void pause() {
-            isPause = true;
             if (mDownloadStatus != null)
                 mDownloadDao.updateProgress(downloadUrl, mDownloadStatus.getDownloadSize(), mDownloadStatus.getTotalSize(), DownloadFlag.PAUSED);
-            sendPauseOrWaitingMessage(DownloadFlag.PAUSED, downloadUrl);
         }
 
 
@@ -347,7 +344,7 @@ public class DownloadService extends Service implements Handler.Callback {
                     inStream = conn.getInputStream();
                     byte[] buffer = new byte[4096];
                     int hasRead;
-                    while (!isPause && length < totalSize && (hasRead = inStream.read(buffer)) != -1) {
+                    while (!mDownloadDao.isPaused(downloadUrl) && length < totalSize && (hasRead = inStream.read(buffer)) != -1) {
                         currentPart.write(buffer, 0, hasRead);
                         length += hasRead;
                         if (mRateListener != null) {
@@ -362,6 +359,8 @@ public class DownloadService extends Service implements Handler.Callback {
                             sendStartOrCompleteMessage(DownloadFlag.COMPLETED, downloadUrl);
                         }
                     }
+                    if (mDownloadDao.isPaused(downloadUrl))
+                        sendPauseOrWaitingMessage(DownloadFlag.PAUSED, downloadUrl);
                 } else {
                     mDownloadDao.updateStatus(downloadUrl, DownloadFlag.FAILED);
                     sendFailureMessage(conn.getResponseCode(), downloadUrl);
