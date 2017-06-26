@@ -239,7 +239,9 @@ public class DownloadService extends Service implements Handler.Callback {
      */
     public void pause(@NonNull String... urls) {
         for (String url : urls) {
-            mDownThreadMap.get(url).pause();
+            if (mDownThreadMap.containsKey(url)) {
+                mDownThreadMap.get(url).pause();
+            }
         }
     }
 
@@ -408,7 +410,7 @@ public class DownloadService extends Service implements Handler.Callback {
 
     private void sendProgressMessage(DownloadStatus status, String downloadUrl) {
         Message message = new Message();
-        message.what = DownloadFlag.STARTED;
+        message.what = DownloadFlag.PROGRESS;
         message.obj = status;
         message.setData(getBundle(downloadUrl));
         sendMessage(message);
@@ -456,7 +458,7 @@ public class DownloadService extends Service implements Handler.Callback {
                     downLoadListener.onWaiting();
                 }
                 break;
-            case DownloadFlag.STARTED:
+            case DownloadFlag.PROGRESS:
                 if (downLoadListener != null) {
                     downLoadListener.onProgress((DownloadStatus) msg.obj);
                 }
@@ -473,7 +475,12 @@ public class DownloadService extends Service implements Handler.Callback {
                 if (mRateListener != null) {
                     mRateListener.onComplete(mDownloadDao.query(msg.getData().getString("url")));
                 }
-                mDownThreadMap.remove(msg.getData().getString("url"));
+                if (mDownLoadListeners.containsKey(msg.getData().getString("url"))) {
+                    mDownLoadListeners.remove(msg.getData().getString("url"));
+                }
+                if (mDownThreadMap.containsKey(msg.getData().getString("url"))) {
+                    mDownThreadMap.remove(msg.getData().getString("url"));
+                }
                 break;
             case DownloadFlag.FAILED:
                 if (downLoadListener != null) {

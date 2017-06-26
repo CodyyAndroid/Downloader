@@ -13,7 +13,7 @@ import java.lang.annotation.RetentionPolicy;
  */
 @IntDef({DownloadFlag.NORMAL,
         DownloadFlag.WAITING,
-        DownloadFlag.STARTED,
+        DownloadFlag.PROGRESS,
         DownloadFlag.PAUSED,
         DownloadFlag.COMPLETED,
         DownloadFlag.FAILED,
@@ -25,7 +25,7 @@ import java.lang.annotation.RetentionPolicy;
 public @interface DownloadFlag {
     int NORMAL = 9990;
     int WAITING = 9991;
-    int STARTED = 9992;
+    int PROGRESS = 9992;
     int PAUSED = 9993;
     int COMPLETED = 9994;
     int FAILED = 9995;
