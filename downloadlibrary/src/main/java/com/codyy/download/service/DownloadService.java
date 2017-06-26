@@ -479,7 +479,9 @@ public class DownloadService extends Service implements Handler.Callback {
                     downLoadListener.onComplete();
                 }
                 if (mRateListener != null) {
-                    mRateListener.onComplete(mDownloadDao.query(msg.getData().getString("url")));
+                    DownloadEntity downloadEntity = mDownloadDao.query(msg.getData().getString("url"));
+                    if (downloadEntity != null)
+                        mRateListener.onComplete(downloadEntity);
                 }
                 if (mDownLoadListeners.containsKey(msg.getData().getString("url"))) {
                     mDownLoadListeners.remove(msg.getData().getString("url"));
