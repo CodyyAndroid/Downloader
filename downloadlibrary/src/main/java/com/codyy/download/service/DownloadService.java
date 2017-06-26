@@ -182,6 +182,7 @@ public class DownloadService extends Service implements Handler.Callback {
      * 删除所有下载记录
      */
     public void deleteAll() {
+        mThreadPoolUtils.shutDownNow();
         for (DownThread thread : mDownThreadMap.values()) {
             thread.pause();
         }
@@ -228,6 +229,7 @@ public class DownloadService extends Service implements Handler.Callback {
      * 暂停所有下载任务
      */
     public void pauseAll() {
+        mThreadPoolUtils.shutDownNow();
         for (String key : mDownThreadMap.keySet()) {
             sendPauseOrWaitingMessage(DownloadFlag.PAUSED, key);
         }
