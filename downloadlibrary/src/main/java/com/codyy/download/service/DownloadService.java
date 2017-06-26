@@ -82,10 +82,8 @@ public class DownloadService extends Service implements Handler.Callback {
      * 开始所有下载任务(已完成和已删除的除外)
      */
     public void startAll() {
-        for (DownloadEntity entity : mDownloadDao.queryAll()) {
-            if (DownloadFlag.COMPLETED != entity.getStatus() && DownloadFlag.DELETED != entity.getStatus()) {
-                download(entity.getUrl(), entity.getSavePath(), entity.getName(), entity.getThumbnails());
-            }
+        for (DownloadEntity entity : mDownloadDao.queryDoingOn()) {
+            download(entity.getUrl(), entity.getSavePath(), entity.getName(), entity.getThumbnails());
         }
     }
 
