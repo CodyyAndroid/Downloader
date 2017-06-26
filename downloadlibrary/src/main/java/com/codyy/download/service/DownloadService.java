@@ -11,6 +11,7 @@ import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.codyy.download.db.DownloadDao;
 import com.codyy.download.db.DownloadDaoImpl;
@@ -97,18 +98,7 @@ public class DownloadService extends Service implements Handler.Callback {
      */
     public void download(@NonNull String downloadUrl, String path, String fileName, String thumbnails) {
         String target = getSavePath(downloadUrl, path, fileName);
-        if (!mDownloadDao.isExist(downloadUrl)) {
-            mDownloadDao.save(new DownloadEntity(0, 0, downloadUrl, target, TextUtils.isEmpty(fileName) ? downloadUrl.substring(downloadUrl.lastIndexOf(File.separator) + 1) : fileName, DownloadFlag.WAITING, TextUtils.isEmpty(thumbnails) ? "" : thumbnails));
-        } else {
-            DownloadEntity entity = mDownloadDao.query(downloadUrl);
-            if (entity.getStatus() == DownloadFlag.COMPLETED) {
-                return;
-            } else {
-                mDownloadDao.updateProgress(downloadUrl, entity.getCurrent(), entity.getTotal(), DownloadFlag.WAITING);
-            }
-        }
-        sendPauseOrWaitingMessage(DownloadFlag.WAITING, downloadUrl);
-        DownThread thread = new DownThread(downloadUrl, target);
+        DownThread thread = new DownThread(downloadUrl, target, fileName, thumbnails);
         mDownThreadMap.put(downloadUrl, thread);
         mThreadPoolUtils.execute(thread);
     }
@@ -182,7 +172,6 @@ public class DownloadService extends Service implements Handler.Callback {
      * 删除所有下载记录
      */
     public void deleteAll() {
-        mThreadPoolUtils.shutDownNow();
         for (DownThread thread : mDownThreadMap.values()) {
             thread.pause();
         }
@@ -229,12 +218,11 @@ public class DownloadService extends Service implements Handler.Callback {
      * 暂停所有下载任务
      */
     public void pauseAll() {
-        mThreadPoolUtils.shutDownNow();
-        for (String key : mDownThreadMap.keySet()) {
-            sendPauseOrWaitingMessage(DownloadFlag.PAUSED, key);
-        }
         for (DownThread thread : mDownThreadMap.values()) {
             thread.pause();
+        }
+        for (String key : mDownThreadMap.keySet()) {
+            sendPauseOrWaitingMessage(DownloadFlag.PAUSED, key);
         }
     }
 
@@ -286,18 +274,24 @@ public class DownloadService extends Service implements Handler.Callback {
         private InputStream inStream;
         private String downloadUrl;
         private String savePath;
+        private String fileName;
+        private String thumbnails;
         private DownloadEntity mDownloadEntity;
         private long totalSize;
+        private volatile boolean isPaused;
 
-        DownThread(@NonNull String url, @NonNull String savePath) {
+        DownThread(@NonNull String url, @NonNull String target, String fileName, String thumbnails) {
             this.downloadUrl = url;
-            this.savePath = savePath;
+            this.savePath = target;
+            this.fileName = fileName;
+            this.thumbnails = thumbnails;
         }
 
         /**
          * 暂停下载
          */
         void pause() {
+            isPaused = true;
             if (mDownloadStatus != null)
                 mDownloadDao.updateProgress(downloadUrl, mDownloadStatus.getDownloadSize(), mDownloadStatus.getTotalSize(), DownloadFlag.PAUSED);
         }
@@ -305,6 +299,21 @@ public class DownloadService extends Service implements Handler.Callback {
 
         @Override
         public void run() {
+            if (isPaused) {
+                Log.d("Thread ", downloadUrl + " was paused");
+                return;
+            }
+            if (!mDownloadDao.isExist(downloadUrl)) {
+                mDownloadDao.save(new DownloadEntity(0, 0, downloadUrl, savePath, TextUtils.isEmpty(fileName) ? downloadUrl.substring(downloadUrl.lastIndexOf(File.separator) + 1) : fileName, DownloadFlag.WAITING, TextUtils.isEmpty(thumbnails) ? "" : thumbnails));
+            } else {
+                DownloadEntity entity = mDownloadDao.query(downloadUrl);
+                if (entity.getStatus() == DownloadFlag.COMPLETED) {
+                    return;
+                } else {
+                    mDownloadDao.updateProgress(downloadUrl, entity.getCurrent(), entity.getTotal(), DownloadFlag.WAITING);
+                }
+            }
+            sendPauseOrWaitingMessage(DownloadFlag.WAITING, downloadUrl);
             if (!mDownloadDao.isExist(downloadUrl)) {//如果下载记录不存在或本地下载文件被删除,将重新开始下载
                 start(0);
             } else {
