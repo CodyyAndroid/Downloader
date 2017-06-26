@@ -189,7 +189,10 @@ public class DownloadService extends Service implements Handler.Callback {
         }
         mDownloadDao.deleteAll();
         for (String key : mDownThreadMap.keySet()) {
-            sendDeleteMessage(DownloadFlag.DELETED, key);
+            if (mDownLoadListeners.containsKey(key)) {
+                mDownLoadListeners.remove(key);
+            }
+//            sendDeleteMessage(DownloadFlag.DELETED, key);
         }
         mDownThreadMap.clear();
     }
@@ -202,12 +205,15 @@ public class DownloadService extends Service implements Handler.Callback {
      */
     public void delete(boolean isRetained, @NonNull String... urls) {
         for (String url : urls) {
-            if (mDownThreadMap.get(url) != null) {
+            if (mDownThreadMap.containsKey(url)) {
                 mDownThreadMap.get(url).pause();
                 mDownThreadMap.remove(url);
             }
             mDownloadDao.delete(url, isRetained);
-            sendDeleteMessage(DownloadFlag.DELETED, url);
+            if (mDownLoadListeners.containsKey(url)) {
+                mDownLoadListeners.remove(url);
+            }
+//            sendDeleteMessage(DownloadFlag.DELETED, url);
         }
     }
 
