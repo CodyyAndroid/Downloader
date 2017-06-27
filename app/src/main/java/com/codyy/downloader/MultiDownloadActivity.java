@@ -42,12 +42,8 @@ public class MultiDownloadActivity extends AppCompatActivity {
         mFileEntities.add(new FileEntity("百度手机助手", getString(R.string.url_apk_file)));
         mFileEntities.add(new FileEntity("AndroidPDF", getString(R.string.url_small_file)));
         recyclerView.setAdapter(new FileAdapter(mFileEntities));
-        Downloader.getInstance(this).setOnConnectedListener(new DownloadConnectedListener() {
-            @Override
-            public void onConnected() {
-                Downloader.getInstance(getApplicationContext()).deleteAll();
-            }
-        });
+//        Downloader.getInstance(getApplicationContext()).download(getString(R.string.url_apk_file));
+//        Downloader.getInstance(getApplicationContext()).download(getString(R.string.url_small_file));
     }
 
     @Override
@@ -73,9 +69,9 @@ public class MultiDownloadActivity extends AppCompatActivity {
     }
 
     public void pauseAll(View view) {
-        for (DownloadEntity entity : Downloader.getInstance(this).getDownloadingRecords()) {
+       /* for (DownloadEntity entity : Downloader.getInstance(this).getDownloadingRecords()) {
             Log.e("entity", entity.toString());
-        }
+        }*/
         Downloader.getInstance(this).pauseAll();
 
     }
@@ -90,6 +86,12 @@ public class MultiDownloadActivity extends AppCompatActivity {
 
     public void startAll(View view) {
         Downloader.getInstance(this).startAll();
+    }
+
+    public void getLoading(View view) {
+        for (DownloadEntity entity : Downloader.getInstance(getApplicationContext()).getDownloadingRecords()) {
+            Log.d("download", entity.toString());
+        }
     }
 
     class FileViewHolder extends RecyclerViewHolder<FileEntity> {

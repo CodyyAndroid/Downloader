@@ -16,14 +16,18 @@ public class DownloadEntity implements Serializable {
     private String name;
     private int status;
     private String thumbnails;
+    private long time;
+    private String extra1;
+    private String extra2;
 
-    public DownloadEntity(long current, long total, String url, String savePath, String name, int status) {
+    public DownloadEntity(long current, long total, String url, String savePath, String name, int status, long time) {
         this.current = current;
         this.total = total;
         this.url = url;
         this.savePath = savePath;
         this.name = name;
         this.status = status;
+        this.time = time;
     }
 
     public DownloadEntity(long current, long total, String url, String savePath, String name, int status, String thumbnails) {
@@ -34,6 +38,66 @@ public class DownloadEntity implements Serializable {
         this.name = name;
         this.status = status;
         this.thumbnails = thumbnails;
+    }
+
+    public DownloadEntity(long current, long total, String url, String savePath, String name, int status, String thumbnails, long time) {
+        this.current = current;
+        this.total = total;
+        this.url = url;
+        this.savePath = savePath;
+        this.name = name;
+        this.status = status;
+        this.thumbnails = thumbnails;
+        this.time = time;
+    }
+
+    public DownloadEntity(long current, long total, String url, String savePath, String name, int status, String thumbnails, long time, String extra1) {
+        this.current = current;
+        this.total = total;
+        this.url = url;
+        this.savePath = savePath;
+        this.name = name;
+        this.status = status;
+        this.thumbnails = thumbnails;
+        this.time = time;
+        this.extra1 = extra1;
+    }
+
+    public DownloadEntity(long current, long total, String url, String savePath, String name, int status, String thumbnails, long time, String extra1, String extra2) {
+        this.current = current;
+        this.total = total;
+        this.url = url;
+        this.savePath = savePath;
+        this.name = name;
+        this.status = status;
+        this.thumbnails = thumbnails;
+        this.time = time;
+        this.extra1 = extra1;
+        this.extra2 = extra2;
+    }
+
+    public long getTime() {
+        return time;
+    }
+
+    public void setTime(long time) {
+        this.time = time;
+    }
+
+    public String getExtra1() {
+        return extra1;
+    }
+
+    public void setExtra1(String extra1) {
+        this.extra1 = extra1;
+    }
+
+    public String getExtra2() {
+        return extra2;
+    }
+
+    public void setExtra2(String extra2) {
+        this.extra2 = extra2;
     }
 
     public String getThumbnails() {
@@ -103,6 +167,10 @@ public class DownloadEntity implements Serializable {
                 ", savePath='" + savePath + '\'' +
                 ", name='" + name + '\'' +
                 ", status=" + status +
+                ", thumbnails='" + thumbnails + '\'' +
+                ", time=" + time +
+                ", extra1='" + extra1 + '\'' +
+                ", extra2='" + extra2 + '\'' +
                 '}';
     }
 }

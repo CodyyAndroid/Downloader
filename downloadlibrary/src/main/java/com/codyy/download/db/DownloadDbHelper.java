@@ -17,12 +17,15 @@ class DownloadDbHelper extends SQLiteOpenHelper {
     private static final String COMMA_SEP = ",";
     private static final String SQL_CREATE_ENTRIES =
             "CREATE TABLE " + DownloadTable.TABLE_NAME + " (" +
-                    DownloadTable.COLUMN_NAME_DOWNLOAD_URL + " TEXT ," +
+                    DownloadTable.COLUMN_NAME_DOWNLOAD_URL + " TEXT PRIMARY KEY ," +
                     DownloadTable.COLUMN_NAME_CURRENT_POSITION + TEXT_TYPE + COMMA_SEP +
                     DownloadTable.COLUMN_NAME_TOTAL_SIZE + TEXT_TYPE + COMMA_SEP +
                     DownloadTable.COLUMN_NAME_SAVE_PATH + TEXT_TYPE + COMMA_SEP +
-                    DownloadTable.COLUMN_NAME_FILE_NAME + TEXT_TYPE + COMMA_SEP +
+                    DownloadTable.COLUMN_NAME_TITLE + TEXT_TYPE + COMMA_SEP +
                     DownloadTable.COLUMN_NAME_THUMBNAILS + TEXT_TYPE + COMMA_SEP +
+                    DownloadTable.COLUMN_NAME_DOWNLOAD_TIME + TEXT_TYPE + COMMA_SEP +
+                    DownloadTable.COLUMN_NAME_EXTRA1 + TEXT_TYPE + COMMA_SEP +
+                    DownloadTable.COLUMN_NAME_EXTRA2 + TEXT_TYPE + COMMA_SEP +
                     DownloadTable.COLUMN_NAME_STATUS + TEXT_TYPE + " )";
 
     private static final String SQL_DELETE_ENTRIES =

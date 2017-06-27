@@ -2,6 +2,8 @@ package com.codyy.download;
 
 import org.junit.Test;
 
+import java.util.Locale;
+
 import static org.junit.Assert.*;
 
 /**
@@ -13,5 +15,6 @@ public class ExampleUnitTest {
     @Test
     public void addition_isCorrect() throws Exception {
         assertEquals(4, 2 + 2);
+        System.out.print(String.format(Locale.getDefault(), "bytes=%d-", 90));
     }
 }

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.annotation.NonNull;
 
 import com.codyy.download.entity.DownloadEntity;
 import com.codyy.download.service.DBSelection;
@@ -35,20 +36,11 @@ public class DownloadDaoImpl implements DownloadDao {
 
     @Override
     public synchronized boolean isExist(String url) {
-        String[] projection = {
-                DownloadTable.COLUMN_NAME_DOWNLOAD_URL,
-                DownloadTable.COLUMN_NAME_CURRENT_POSITION,
-                DownloadTable.COLUMN_NAME_TOTAL_SIZE,
-                DownloadTable.COLUMN_NAME_SAVE_PATH,
-                DownloadTable.COLUMN_NAME_FILE_NAME,
-                DownloadTable.COLUMN_NAME_STATUS,
-                DownloadTable.COLUMN_NAME_THUMBNAILS
-        };
         String selection = DownloadTable.COLUMN_NAME_DOWNLOAD_URL + DBSelection.SELECTION_EQUAL;
         String[] selectionArgs = {url};
         Cursor cursor = mDbHelper.getReadableDatabase().query(
                 DownloadTable.TABLE_NAME,
-                projection,
+                getProjection(),
                 selection,
                 selectionArgs,
                 null,
@@ -70,20 +62,11 @@ public class DownloadDaoImpl implements DownloadDao {
     @Override
     public synchronized boolean isPaused(String url) {
         boolean isPaused = false;
-        String[] projection = {
-                DownloadTable.COLUMN_NAME_DOWNLOAD_URL,
-                DownloadTable.COLUMN_NAME_CURRENT_POSITION,
-                DownloadTable.COLUMN_NAME_TOTAL_SIZE,
-                DownloadTable.COLUMN_NAME_SAVE_PATH,
-                DownloadTable.COLUMN_NAME_FILE_NAME,
-                DownloadTable.COLUMN_NAME_STATUS,
-                DownloadTable.COLUMN_NAME_THUMBNAILS
-        };
         String selection = DownloadTable.COLUMN_NAME_DOWNLOAD_URL + DBSelection.SELECTION_EQUAL;
         String[] selectionArgs = {url};
         Cursor cursor = mDbHelper.getReadableDatabase().query(
                 DownloadTable.TABLE_NAME,
-                projection,
+                getProjection(),
                 selection,
                 selectionArgs,
                 null,
@@ -108,11 +91,14 @@ public class DownloadDaoImpl implements DownloadDao {
                     + "," + DownloadTable.COLUMN_NAME_CURRENT_POSITION
                     + "," + DownloadTable.COLUMN_NAME_TOTAL_SIZE
                     + "," + DownloadTable.COLUMN_NAME_SAVE_PATH
-                    + "," + DownloadTable.COLUMN_NAME_FILE_NAME
+                    + "," + DownloadTable.COLUMN_NAME_TITLE
                     + "," + DownloadTable.COLUMN_NAME_STATUS
                     + "," + DownloadTable.COLUMN_NAME_THUMBNAILS
-                    + ") values(?,?,?,?,?,?,?)";
-            Object[] bindArgs = {entry.getUrl(), entry.getCurrent(), entry.getTotal(), entry.getSavePath(), entry.getName(), entry.getStatus(), entry.getThumbnails()};
+                    + "," + DownloadTable.COLUMN_NAME_DOWNLOAD_TIME
+                    + "," + DownloadTable.COLUMN_NAME_EXTRA1
+                    + "," + DownloadTable.COLUMN_NAME_EXTRA2
+                    + ") values(?,?,?,?,?,?,?,?,?,?)";
+            Object[] bindArgs = {entry.getUrl(), entry.getCurrent(), entry.getTotal(), entry.getSavePath(), entry.getName(), entry.getStatus(), entry.getThumbnails(), entry.getTime(), entry.getExtra1(), entry.getExtra2()};
             database.execSQL(sql, bindArgs);
             database.setTransactionSuccessful();
         } catch (Exception e) {
@@ -128,7 +114,7 @@ public class DownloadDaoImpl implements DownloadDao {
         values.put(DownloadTable.COLUMN_NAME_CURRENT_POSITION, entry.getCurrent() + "");
         values.put(DownloadTable.COLUMN_NAME_TOTAL_SIZE, entry.getTotal() + "");
         values.put(DownloadTable.COLUMN_NAME_SAVE_PATH, entry.getSavePath());
-        values.put(DownloadTable.COLUMN_NAME_FILE_NAME, entry.getName());
+        values.put(DownloadTable.COLUMN_NAME_TITLE, entry.getName());
         values.put(DownloadTable.COLUMN_NAME_STATUS, entry.getStatus() + "");
         long newRowId = mDbHelper.getWritableDatabase().insert(DownloadTable.TABLE_NAME, null, values);
         return newRowId != -1;*/
@@ -232,20 +218,11 @@ public class DownloadDaoImpl implements DownloadDao {
 
     @Override
     public DownloadEntity query(String url) {
-        String[] projection = {
-                DownloadTable.COLUMN_NAME_DOWNLOAD_URL,
-                DownloadTable.COLUMN_NAME_CURRENT_POSITION,
-                DownloadTable.COLUMN_NAME_TOTAL_SIZE,
-                DownloadTable.COLUMN_NAME_SAVE_PATH,
-                DownloadTable.COLUMN_NAME_FILE_NAME,
-                DownloadTable.COLUMN_NAME_STATUS,
-                DownloadTable.COLUMN_NAME_THUMBNAILS
-        };
         String selection = DownloadTable.COLUMN_NAME_DOWNLOAD_URL + DBSelection.SELECTION_EQUAL;
         String[] selectionArgs = {url};
         Cursor cursor = mDbHelper.getReadableDatabase().query(
                 DownloadTable.TABLE_NAME,
-                projection,
+                getProjection(),
                 selection,
                 selectionArgs,
                 null,
@@ -254,15 +231,7 @@ public class DownloadDaoImpl implements DownloadDao {
         );
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
-            return new DownloadEntity(
-                    Long.parseLong(cursor.getString(cursor.getColumnIndex(DownloadTable.COLUMN_NAME_CURRENT_POSITION))),
-                    Long.parseLong(cursor.getString(cursor.getColumnIndex(DownloadTable.COLUMN_NAME_TOTAL_SIZE))),
-                    cursor.getString(cursor.getColumnIndex(DownloadTable.COLUMN_NAME_DOWNLOAD_URL)),
-                    cursor.getString(cursor.getColumnIndex(DownloadTable.COLUMN_NAME_SAVE_PATH)),
-                    cursor.getString(cursor.getColumnIndex(DownloadTable.COLUMN_NAME_FILE_NAME)),
-                    Integer.parseInt(cursor.getString(cursor.getColumnIndex(DownloadTable.COLUMN_NAME_STATUS))),
-                    cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_THUMBNAILS))
-            );
+            return getDownloadEntity(cursor);
         }
         cursor.close();
         return null;
@@ -271,36 +240,19 @@ public class DownloadDaoImpl implements DownloadDao {
     @Override
     public List<DownloadEntity> queryAll() {
         List<DownloadEntity> list = new ArrayList<>();
-        String[] projection = {
-                DownloadTable.COLUMN_NAME_DOWNLOAD_URL,
-                DownloadTable.COLUMN_NAME_CURRENT_POSITION,
-                DownloadTable.COLUMN_NAME_TOTAL_SIZE,
-                DownloadTable.COLUMN_NAME_SAVE_PATH,
-                DownloadTable.COLUMN_NAME_FILE_NAME,
-                DownloadTable.COLUMN_NAME_STATUS,
-                DownloadTable.COLUMN_NAME_THUMBNAILS
-        };
         String selection = DownloadTable.COLUMN_NAME_STATUS + DBSelection.SELECTION_EQUAL;
         String[] selectionArgs = {DownloadFlag.COMPLETED + ""};
         Cursor cursor = mDbHelper.getReadableDatabase().query(
                 DownloadTable.TABLE_NAME,
-                projection,
+                getProjection(),
                 selection,
                 selectionArgs,
                 null,
                 null,
-                null
+                DownloadTable.COLUMN_NAME_DOWNLOAD_TIME + DBSelection.SELECTION_DESC
         );
         while (cursor.moveToNext()) {
-            list.add(new DownloadEntity(
-                    Long.parseLong(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_CURRENT_POSITION))),
-                    Long.parseLong(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_TOTAL_SIZE))),
-                    cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_DOWNLOAD_URL)),
-                    cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_SAVE_PATH)),
-                    cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_FILE_NAME)),
-                    Integer.parseInt(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_STATUS))),
-                    cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_THUMBNAILS))
-            ));
+            list.add(getDownloadEntity(cursor));
         }
         cursor.close();
         return list;
@@ -309,39 +261,54 @@ public class DownloadDaoImpl implements DownloadDao {
     @Override
     public List<DownloadEntity> queryDoingOn() {
         List<DownloadEntity> list = new ArrayList<>();
-        String[] projection = {
-                DownloadTable.COLUMN_NAME_DOWNLOAD_URL,
-                DownloadTable.COLUMN_NAME_CURRENT_POSITION,
-                DownloadTable.COLUMN_NAME_TOTAL_SIZE,
-                DownloadTable.COLUMN_NAME_SAVE_PATH,
-                DownloadTable.COLUMN_NAME_FILE_NAME,
-                DownloadTable.COLUMN_NAME_STATUS,
-                DownloadTable.COLUMN_NAME_THUMBNAILS
-        };
         String selection = DownloadTable.COLUMN_NAME_STATUS + DBSelection.SELECTION_UNEQUAL;
         String[] selectionArgs = {DownloadFlag.COMPLETED + ""};
         Cursor cursor = mDbHelper.getReadableDatabase().query(
                 DownloadTable.TABLE_NAME,
-                projection,
+                getProjection(),
                 selection,
                 selectionArgs,
                 null,
                 null,
-                null
+                DownloadTable.COLUMN_NAME_DOWNLOAD_TIME + DBSelection.SELECTION_DESC
         );
         while (cursor.moveToNext()) {
-            list.add(new DownloadEntity(
-                    Long.parseLong(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_CURRENT_POSITION))),
-                    Long.parseLong(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_TOTAL_SIZE))),
-                    cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_DOWNLOAD_URL)),
-                    cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_SAVE_PATH)),
-                    cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_FILE_NAME)),
-                    Integer.parseInt(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_STATUS))),
-                    cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_THUMBNAILS))
-            ));
+            list.add(getDownloadEntity(cursor));
         }
         cursor.close();
         return list;
+    }
+
+    @NonNull
+    private DownloadEntity getDownloadEntity(Cursor cursor) {
+        return new DownloadEntity(
+                Long.parseLong(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_CURRENT_POSITION))),
+                Long.parseLong(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_TOTAL_SIZE))),
+                cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_DOWNLOAD_URL)),
+                cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_SAVE_PATH)),
+                cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_TITLE)),
+                Integer.parseInt(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_STATUS))),
+                cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_THUMBNAILS)),
+                Long.parseLong(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_DOWNLOAD_TIME))),
+                cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_EXTRA1)),
+                cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_EXTRA2))
+        );
+    }
+
+    @NonNull
+    private String[] getProjection() {
+        return new String[]{
+                DownloadTable.COLUMN_NAME_DOWNLOAD_URL,
+                DownloadTable.COLUMN_NAME_CURRENT_POSITION,
+                DownloadTable.COLUMN_NAME_TOTAL_SIZE,
+                DownloadTable.COLUMN_NAME_SAVE_PATH,
+                DownloadTable.COLUMN_NAME_TITLE,
+                DownloadTable.COLUMN_NAME_STATUS,
+                DownloadTable.COLUMN_NAME_THUMBNAILS,
+                DownloadTable.COLUMN_NAME_DOWNLOAD_TIME,
+                DownloadTable.COLUMN_NAME_EXTRA1,
+                DownloadTable.COLUMN_NAME_EXTRA2
+        };
     }
 
     @Override

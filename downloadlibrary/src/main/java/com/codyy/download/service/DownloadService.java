@@ -28,6 +28,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -51,7 +52,6 @@ public class DownloadService extends Service implements Handler.Callback {
         super.onCreate();
         mHandler = new Handler(this);
         mDownloadDao = DownloadDaoImpl.getInstance(this);
-//        startAll();
     }
 
     @Override
@@ -93,13 +93,21 @@ public class DownloadService extends Service implements Handler.Callback {
      *
      * @param downloadUrl 下载地址
      * @param path        保存路径(默认地址为Download)
-     * @param fileName    文件名称(默认为下载连接截取名称)
+     * @param title       文件标题
      * @param thumbnails  缩略图地址
      */
-    public void download(@NonNull String downloadUrl, String path, String fileName, String thumbnails) {
-        String target = getSavePath(downloadUrl, path, fileName);
+    public void download(@NonNull String downloadUrl, String path, String title, String thumbnails) {
+        this.download(downloadUrl, path, title, thumbnails, null);
+    }
+
+    public void download(@NonNull String downloadUrl, String path, String title, String thumbnails, String extra1) {
+        this.download(downloadUrl, path, title, thumbnails, extra1, null);
+    }
+
+    public void download(@NonNull String downloadUrl, String path, String title, String thumbnails, String extra1, String extra2) {
+        String target = getSavePath(downloadUrl, path);
         if (!mDownloadDao.isExist(downloadUrl)) {
-            mDownloadDao.save(new DownloadEntity(0, 0, downloadUrl, target, TextUtils.isEmpty(fileName) ? downloadUrl.substring(downloadUrl.lastIndexOf(File.separator) + 1) : fileName, DownloadFlag.WAITING, TextUtils.isEmpty(thumbnails) ? "" : thumbnails));
+            mDownloadDao.save(new DownloadEntity(0, 0, downloadUrl, target, TextUtils.isEmpty(title) ? downloadUrl.substring(downloadUrl.lastIndexOf(File.separator) + 1) : title, DownloadFlag.WAITING, TextUtils.isEmpty(thumbnails) ? "" : thumbnails, System.currentTimeMillis(), extra1, extra2));
         } else {
             DownloadEntity entity = mDownloadDao.query(downloadUrl);
             if (entity.getStatus() == DownloadFlag.COMPLETED) {
@@ -114,13 +122,8 @@ public class DownloadService extends Service implements Handler.Callback {
         mThreadPoolUtils.execute(thread);
     }
 
-    private String getSavePath(@NonNull String downloadUrl, String path, String fileName) {
-        String name;
-        if (TextUtils.isEmpty(fileName)) {
-            name = downloadUrl.substring(downloadUrl.lastIndexOf(File.separator) + 1);
-        } else {
-            name = fileName;
-        }
+    private String getSavePath(@NonNull String downloadUrl, String path) {
+        String name = downloadUrl.substring(downloadUrl.lastIndexOf(File.separator) + 1);
         if (TextUtils.isEmpty(path)) {
             return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), name).getAbsolutePath();
         } else {
@@ -138,10 +141,18 @@ public class DownloadService extends Service implements Handler.Callback {
         mDownLoadListeners.put(downloadUrl, loadListener);
     }
 
+    /**
+     * 增加下载速率监听
+     *
+     * @param rateListener {@link DownloadRateListener}
+     */
     public void addRateListener(DownloadRateListener rateListener) {
         mRateListener = rateListener;
     }
 
+    /**
+     * 移除速率监听
+     */
     public void removeRateListener() {
         mRateListener = null;
         if (mTimer != null) {
@@ -149,6 +160,11 @@ public class DownloadService extends Service implements Handler.Callback {
         }
     }
 
+    /**
+     * 接收下载速率及任务完成监听
+     *
+     * @param rateListener {@link DownloadRateListener}
+     */
     public void receiveDownloadRate(DownloadRateListener rateListener) {
         addRateListener(rateListener);
         mTimer = new Timer();
@@ -158,9 +174,7 @@ public class DownloadService extends Service implements Handler.Callback {
                 if (mRateListener != null) {
                     List<DownloadEntity> downloadEntities = new ArrayList<>();
                     for (DownloadEntity entity : mDownloadDao.queryDoingOn()) {
-                        if (DownloadFlag.COMPLETED != entity.getStatus() && DownloadFlag.DELETED != entity.getStatus()) {
-                            downloadEntities.add(entity);
-                        }
+                        downloadEntities.add(entity);
                     }
                     sendRatingMessage(downloadEntities);
                 }
@@ -169,12 +183,17 @@ public class DownloadService extends Service implements Handler.Callback {
         }, 0L, 1000L);
     }
 
+    /**
+     * 发送下载速率Messages
+     *
+     * @param downloadEntities 下载完成的数据
+     */
     private void sendRatingMessage(List<DownloadEntity> downloadEntities) {
         Message message = new Message();
         message.what = DownloadFlag.RATING;
         Bundle bundle = new Bundle();
-        bundle.putString("rate", DownloadStatus.formatRate(sRates));
-        bundle.putInt("count", downloadEntities.size());
+        bundle.putString(DownloadExtra.EXTRA_RATE, DownloadStatus.formatRate(sRates));
+        bundle.putInt(DownloadExtra.EXTRA_COUNT, downloadEntities.size());
         message.setData(bundle);
         mHandler.sendMessage(message);
     }
@@ -342,19 +361,19 @@ public class DownloadService extends Service implements Handler.Callback {
             try {
                 URL url = new URL(downloadUrl);
                 conn = (HttpURLConnection) url.openConnection();
-                conn.setConnectTimeout(5 * 1000);
-                conn.setReadTimeout(5 * 1000);
-                conn.setRequestMethod("GET");
-                conn.setRequestProperty("Accept", "*/*");
-                conn.setRequestProperty("Accept-Language", "zh-CN");
-                conn.setRequestProperty("Charset", "UTF-8");
-                conn.setRequestProperty("Range", "bytes=" + range + "-");
+                conn.setConnectTimeout(DownloadExtra.TIME_OUT);
+                conn.setReadTimeout(DownloadExtra.TIME_OUT);
+                conn.setRequestMethod(DownloadExtra.REQUEST_METHOD);
+                conn.setRequestProperty(DownloadExtra.REQUEST_PROPERTY_KEY1, DownloadExtra.REQUEST_PROPERTY_VALUE1);
+                conn.setRequestProperty(DownloadExtra.REQUEST_PROPERTY_KEY2, DownloadExtra.REQUEST_PROPERTY_VALUE2);
+                conn.setRequestProperty(DownloadExtra.REQUEST_PROPERTY_KEY3, DownloadExtra.REQUEST_PROPERTY_VALUE3);
+                conn.setRequestProperty(DownloadExtra.REQUEST_PROPERTY_KEY4, String.format(Locale.getDefault(), "bytes=%d-", range));
                 totalSize = (range == 0 ? conn.getContentLength() : mDownloadEntity.getTotal());
-                currentPart = new RandomAccessFile(savePath, "rwd");
+                currentPart = new RandomAccessFile(savePath, DownloadExtra.RANDOM_ACCESS_FILE_MODE);
                 currentPart.setLength(totalSize);
                 currentPart.close();
                 if (conn.getResponseCode() == 206) {
-                    currentPart = new RandomAccessFile(savePath, "rwd");
+                    currentPart = new RandomAccessFile(savePath, DownloadExtra.RANDOM_ACCESS_FILE_MODE);
                     currentPart.seek(range);
                     sendStartOrCompleteMessage(DownloadFlag.NORMAL, downloadUrl);
                     inStream = conn.getInputStream();
@@ -454,13 +473,13 @@ public class DownloadService extends Service implements Handler.Callback {
 
     private Bundle getBundle(String downloadUrl) {
         Bundle bundle = new Bundle();
-        bundle.putString("url", downloadUrl);
+        bundle.putString(DownloadExtra.EXTRA_URL, downloadUrl);
         return bundle;
     }
 
     @Override
     public boolean handleMessage(Message msg) {
-        DownLoadListener downLoadListener = mDownLoadListeners.get(msg.getData().getString("url"));
+        DownLoadListener downLoadListener = mDownLoadListeners.get(msg.getData().getString(DownloadExtra.EXTRA_URL));
         switch (msg.what) {
             case DownloadFlag.NORMAL:
                 if (downLoadListener != null) {
@@ -487,15 +506,15 @@ public class DownloadService extends Service implements Handler.Callback {
                     downLoadListener.onComplete();
                 }
                 if (mRateListener != null) {
-                    DownloadEntity downloadEntity = mDownloadDao.query(msg.getData().getString("url"));
+                    DownloadEntity downloadEntity = mDownloadDao.query(msg.getData().getString(DownloadExtra.EXTRA_URL));
                     if (downloadEntity != null)
                         mRateListener.onComplete(downloadEntity);
                 }
-                if (mDownLoadListeners.containsKey(msg.getData().getString("url"))) {
-                    mDownLoadListeners.remove(msg.getData().getString("url"));
+                if (mDownLoadListeners.containsKey(msg.getData().getString(DownloadExtra.EXTRA_URL))) {
+                    mDownLoadListeners.remove(msg.getData().getString(DownloadExtra.EXTRA_URL));
                 }
-                if (mDownThreadMap.containsKey(msg.getData().getString("url"))) {
-                    mDownThreadMap.remove(msg.getData().getString("url"));
+                if (mDownThreadMap.containsKey(msg.getData().getString(DownloadExtra.EXTRA_URL))) {
+                    mDownThreadMap.remove(msg.getData().getString(DownloadExtra.EXTRA_URL));
                 }
                 break;
             case DownloadFlag.FAILED:
@@ -515,7 +534,7 @@ public class DownloadService extends Service implements Handler.Callback {
                 break;
             case DownloadFlag.RATING:
                 if (mRateListener != null) {
-                    mRateListener.onRate(msg.getData().getString("rate"), msg.getData().getInt("count", 0));
+                    mRateListener.onRate(msg.getData().getString(DownloadExtra.EXTRA_RATE), msg.getData().getInt(DownloadExtra.EXTRA_COUNT, 0));
                 }
                 break;
         }

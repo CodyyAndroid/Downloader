@@ -20,10 +20,16 @@ public @interface DownloadTable {
     String COLUMN_NAME_DOWNLOAD_URL = "url";
     /*本地下载路径*/
     String COLUMN_NAME_SAVE_PATH = "path";
-    /*下载文件名称*/
-    String COLUMN_NAME_FILE_NAME = "name";
+    /*下载标题名称*/
+    String COLUMN_NAME_TITLE = "title";
     /*下载状态*/
     String COLUMN_NAME_STATUS = "status";
     /*缩略图地址*/
     String COLUMN_NAME_THUMBNAILS = "thumbnails";
+    /*下载时间*/
+    String COLUMN_NAME_DOWNLOAD_TIME = "time";
+    /*其他信息1*/
+    String COLUMN_NAME_EXTRA1 = "extra1";
+    /*其他信息2*/
+    String COLUMN_NAME_EXTRA2 = "extra2";
 }
