@@ -17,6 +17,7 @@ import android.widget.Toast;
 import com.codyy.download.Downloader;
 import com.codyy.download.entity.DownloadEntity;
 import com.codyy.download.service.DownLoadListener;
+import com.codyy.download.service.DownloadConnectedListener;
 import com.codyy.download.service.DownloadRateListener;
 import com.codyy.download.service.DownloadStatus;
 
@@ -41,6 +42,12 @@ public class MultiDownloadActivity extends AppCompatActivity {
         mFileEntities.add(new FileEntity("百度手机助手", getString(R.string.url_apk_file)));
         mFileEntities.add(new FileEntity("AndroidPDF", getString(R.string.url_small_file)));
         recyclerView.setAdapter(new FileAdapter(mFileEntities));
+        Downloader.getInstance(this).setOnConnectedListener(new DownloadConnectedListener() {
+            @Override
+            public void onConnected() {
+                Downloader.getInstance(getApplicationContext()).deleteAll();
+            }
+        });
     }
 
     @Override
@@ -79,6 +86,10 @@ public class MultiDownloadActivity extends AppCompatActivity {
 
     public void deleteAll(View view) {
         Downloader.getInstance(this).deleteAll();
+    }
+
+    public void startAll(View view) {
+        Downloader.getInstance(this).startAll();
     }
 
     class FileViewHolder extends RecyclerViewHolder<FileEntity> {

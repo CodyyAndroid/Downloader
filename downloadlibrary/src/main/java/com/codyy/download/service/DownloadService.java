@@ -119,12 +119,12 @@ public class DownloadService extends Service implements Handler.Callback {
         if (TextUtils.isEmpty(fileName)) {
             name = downloadUrl.substring(downloadUrl.lastIndexOf(File.separator) + 1);
         } else {
-            name = fileName + downloadUrl.substring(downloadUrl.lastIndexOf("."));
+            name = fileName;
         }
         if (TextUtils.isEmpty(path)) {
             return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), name).getAbsolutePath();
         } else {
-            return path.endsWith(File.separator) ? path + name : path + File.separator + name;
+            return path;
         }
     }
 
