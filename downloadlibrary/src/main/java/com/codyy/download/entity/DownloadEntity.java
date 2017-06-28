@@ -20,6 +20,15 @@ public class DownloadEntity implements Serializable {
     private String extra1;
     private String extra2;
 
+    public DownloadEntity(long current, long total, String url, String savePath, String name, int status) {
+        this.current = current;
+        this.total = total;
+        this.url = url;
+        this.savePath = savePath;
+        this.name = name;
+        this.status = status;
+    }
+
     public DownloadEntity(long current, long total, String url, String savePath, String name, int status, long time) {
         this.current = current;
         this.total = total;
