@@ -114,20 +114,20 @@ public class Downloader {
      * 开始下载
      *
      * @param downloadUrl 下载地址
-     * @param fileName    自定义文件名称
+     * @param title    自定义文件名称
      */
-    public void download(@NonNull String downloadUrl, String fileName) {
-        this.download(downloadUrl, null, fileName, null);
+    public void download(@NonNull String downloadUrl, String title) {
+        this.download(downloadUrl, null, title, null);
     }
 
     /**
      * 开始下载
      *
      * @param downloadUrl 下载地址
-     * @param fileName    自定义文件名称
+     * @param title    自定义文件名称
      */
-    public void download(@NonNull String downloadUrl, String fileName, String thumbnails) {
-        this.download(downloadUrl, null, fileName, thumbnails);
+    public void download(@NonNull String downloadUrl, String title, String thumbnails) {
+        this.download(downloadUrl, null, title, thumbnails);
     }
 
     /**
@@ -135,14 +135,14 @@ public class Downloader {
      *
      * @param downloadUrl 下载地址
      * @param path        自定义文件保存路径
-     * @param fileName    自定义文件保存名称
+     * @param title    自定义文件保存名称
      */
-    public void download(@NonNull String downloadUrl, String path, String fileName, String thumbnails) {
+    public void download(@NonNull String downloadUrl, String path, String title, String thumbnails) {
         if (!bound) startDownloadService();
         if (mDownloadService != null) {
-            mDownloadService.download(downloadUrl, path, fileName, thumbnails);
+            mDownloadService.download(downloadUrl, path, title, thumbnails);
         } else {
-            mDownTasks.put(downloadUrl, new FileEntity(path, fileName, thumbnails));
+            mDownTasks.put(downloadUrl, new FileEntity(path, title, thumbnails));
         }
     }
 
