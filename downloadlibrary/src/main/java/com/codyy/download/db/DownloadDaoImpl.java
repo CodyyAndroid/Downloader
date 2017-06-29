@@ -202,6 +202,15 @@ public class DownloadDaoImpl implements DownloadDao {
 
     }
 
+    private synchronized void delete(String url) {
+        // Define 'where' part of queryAll.
+        String selection = DownloadTable.COLUMN_NAME_DOWNLOAD_URL + DBSelection.SELECTION_EQUAL;
+        // Specify arguments in placeholder order.
+        String[] selectionArgs = {url};
+        // Issue SQL statement.
+        mDbHelper.getWritableDatabase().delete(DownloadTable.TABLE_NAME, selection, selectionArgs);
+    }
+
     @Override
     public synchronized void deleteAll() {
         List<DownloadEntity> list = queryAll();
@@ -218,6 +227,7 @@ public class DownloadDaoImpl implements DownloadDao {
 
     @Override
     public DownloadEntity query(String url) {
+        DownloadEntity entity = null;
         String selection = DownloadTable.COLUMN_NAME_DOWNLOAD_URL + DBSelection.SELECTION_EQUAL;
         String[] selectionArgs = {url};
         Cursor cursor = mDbHelper.getReadableDatabase().query(
@@ -231,10 +241,17 @@ public class DownloadDaoImpl implements DownloadDao {
         );
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
-            return getDownloadEntity(cursor);
+            entity = getDownloadEntity(cursor);
+            if (entity.getSavePath() != null) {
+                File file = new File(entity.getSavePath());
+                if (!file.exists()) {
+                    delete(entity.getUrl());
+                    entity = null;
+                }
+            }
         }
         cursor.close();
-        return null;
+        return entity;
     }
 
     @Override
