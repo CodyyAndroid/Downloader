@@ -19,7 +19,4 @@ dependencies {
 	}
 
 ```
-### 文档生成命令
-```
-javadoc -windowtitle DownloadLibrary -encoding UTF-8 -charset UTF-8 -d D:\workspace\Downloader Downloader.java service\DownloadFlag.java
-```
+
