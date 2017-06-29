@@ -24,5 +24,5 @@ public @interface DownloadExtra {
     String REQUEST_PROPERTY_VALUE3 = "UTF-8";
     String REQUEST_PROPERTY_KEY4 = "Range";
     String RANDOM_ACCESS_FILE_MODE = "rwd";
-    int TIME_OUT = 5000;
+    int TIME_OUT = 10000;
 }

@@ -35,11 +35,13 @@ public class MultiDownloadActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Downloader.init(this);
         setContentView(R.layout.activity_multi_download);
         mTextView = (TextView) findViewById(R.id.tv_rate);
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.rv);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         mFileEntities.add(new FileEntity("百度手机助手", getString(R.string.url_apk_file)));
+        mFileEntities.add(new FileEntity("resource", "http://reserver.9itest.com:8081/res/view/mobile/download/video/d908232052b84ef0bfa10152067339b8/396face834ca48dab37ad22c6323573b.do"));
         mFileEntities.add(new FileEntity("AndroidPDF", getString(R.string.url_small_file)));
         recyclerView.setAdapter(new FileAdapter(mFileEntities));
 //        Downloader.getInstance(getApplicationContext()).download(getString(R.string.url_apk_file));

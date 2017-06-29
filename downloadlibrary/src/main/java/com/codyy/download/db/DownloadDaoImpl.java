@@ -48,13 +48,13 @@ public class DownloadDaoImpl implements DownloadDao {
                 null
         );
         int count = cursor.getCount();
-        /*if (count > 0) {//如果数据库存在记录,但是文件已被删除,则从数据库删除记录
+        if (count > 0) {//如果数据库存在记录,但是文件已被删除,则从数据库删除记录
             cursor.moveToFirst();
-            if (!new File(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_SAVE_PATH))).exists()) {
-                delete(url, false);
+            if (!new File(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_SAVE_PATH))).exists() && Long.parseLong(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_TOTAL_SIZE))) > 0) {
+                delete(url);
                 count = 0;
             }
-        }*/
+        }
         cursor.close();
         return count > 0;
     }
@@ -183,6 +183,22 @@ public class DownloadDaoImpl implements DownloadDao {
     }
 
     @Override
+    public synchronized void updatePath(String url, String savePath) {
+        SQLiteDatabase database = mDbHelper.getWritableDatabase();
+        database.beginTransaction();
+        try {
+            String sql = "update " + DownloadTable.TABLE_NAME + " set " + DownloadTable.COLUMN_NAME_SAVE_PATH + "=? where " + DownloadTable.COLUMN_NAME_DOWNLOAD_URL + DBSelection.SELECTION_EQUAL;
+            Object[] bindArgs = {savePath, url};
+            database.execSQL(sql, bindArgs);
+            database.setTransactionSuccessful();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            database.endTransaction();
+        }
+    }
+
+    @Override
     public synchronized boolean delete(String url, boolean isRetained) {
         if (!isRetained) {
             DownloadEntity entity = query(url);
@@ -242,7 +258,7 @@ public class DownloadDaoImpl implements DownloadDao {
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
             entity = getDownloadEntity(cursor);
-            if (entity.getSavePath() != null) {
+            if (entity.getSavePath() != null && entity.getTotal() > 0) {
                 File file = new File(entity.getSavePath());
                 if (!file.exists()) {
                     delete(entity.getUrl());

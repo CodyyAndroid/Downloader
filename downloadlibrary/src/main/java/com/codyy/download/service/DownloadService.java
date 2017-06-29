@@ -369,6 +369,14 @@ public class DownloadService extends Service implements Handler.Callback {
                 conn.setRequestProperty(DownloadExtra.REQUEST_PROPERTY_KEY3, DownloadExtra.REQUEST_PROPERTY_VALUE3);
                 conn.setRequestProperty(DownloadExtra.REQUEST_PROPERTY_KEY4, String.format(Locale.getDefault(), "bytes=%d-", range));
                 totalSize = (range == 0 ? conn.getContentLength() : mDownloadEntity.getTotal());
+                if (savePath.endsWith(".do")) {
+                    new File(savePath).delete();
+                    String contentDisposition = new String(conn.getHeaderField("Content-Disposition").getBytes("UTF-8"), "UTF-8");
+                    String filename = contentDisposition.substring(contentDisposition.indexOf("=") + 1);
+//                    Log.e("filename", filename.trim());
+                    savePath = savePath.replace(".do", filename);
+                    mDownloadDao.updatePath(downloadUrl, savePath);
+                }
                 currentPart = new RandomAccessFile(savePath, DownloadExtra.RANDOM_ACCESS_FILE_MODE);
                 currentPart.setLength(totalSize);
                 currentPart.close();

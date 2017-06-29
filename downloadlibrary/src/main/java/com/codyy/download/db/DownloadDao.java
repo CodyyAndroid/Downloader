@@ -53,6 +53,11 @@ public interface DownloadDao {
     boolean updateStatus(String url, @DownloadFlag int status);
 
     /**
+     * 更新保存路径
+     */
+    void updatePath(String url, String savePath);
+
+    /**
      * 删除下载记录
      */
     boolean delete(String url, boolean isRetained);
