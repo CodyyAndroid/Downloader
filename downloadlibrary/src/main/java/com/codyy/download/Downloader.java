@@ -67,6 +67,13 @@ public class Downloader {
     }
 
     /**
+     * 增加初始化方法
+     */
+    public static void init(Context context) {
+        getInstance(context).startDownloadService();
+    }
+
+    /**
      * 开始下载服务
      */
     private void startDownloadService() {
@@ -114,7 +121,7 @@ public class Downloader {
      * 开始下载
      *
      * @param downloadUrl 下载地址
-     * @param title    自定义文件名称
+     * @param title       自定义文件名称
      */
     public void download(@NonNull String downloadUrl, String title) {
         this.download(downloadUrl, null, title, null);
@@ -124,7 +131,7 @@ public class Downloader {
      * 开始下载
      *
      * @param downloadUrl 下载地址
-     * @param title    自定义文件名称
+     * @param title       自定义文件名称
      */
     public void download(@NonNull String downloadUrl, String title, String thumbnails) {
         this.download(downloadUrl, null, title, thumbnails);
@@ -135,7 +142,7 @@ public class Downloader {
      *
      * @param downloadUrl 下载地址
      * @param path        自定义文件保存路径
-     * @param title    自定义文件保存名称
+     * @param title       自定义文件保存名称
      */
     public void download(@NonNull String downloadUrl, String path, String title, String thumbnails) {
         if (!bound) startDownloadService();

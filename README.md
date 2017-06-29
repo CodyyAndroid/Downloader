@@ -15,7 +15,11 @@ allprojects {
 **Step 2. Add the dependency**
 ```
 dependencies {
-	        compile 'com.github.CodyyAndroid:Downloader:0.2.4'
+	        compile 'com.github.CodyyAndroid:Downloader:0.2.5'
 	}
 
+```
+### 文档生成命令
+```
+javadoc -windowtitle DownloadLibrary -encoding UTF-8 -charset UTF-8 -d D:\workspace\Downloader Downloader.java service\DownloadFlag.java
 ```
