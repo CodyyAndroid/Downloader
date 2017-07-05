@@ -15,7 +15,12 @@ allprojects {
 **Step 2. Add the dependency**
 ```
 dependencies {
-	        compile 'com.github.CodyyAndroid:Downloader:0.2.8'
+            //如果项目中已有com.android.support.*包,则从Downloader中剔除;
+	        compile('com.github.CodyyAndroid:Downloader:0.2.8') {
+                   exclude group: 'com.android.support'
+            }
+            //如果项目中无com.android.support.*包,则保留;
+            compile('com.github.CodyyAndroid:Downloader:0.2.8')
 	}
 
 ```
