@@ -17,7 +17,6 @@ import android.widget.Toast;
 import com.codyy.download.Downloader;
 import com.codyy.download.entity.DownloadEntity;
 import com.codyy.download.service.DownLoadListener;
-import com.codyy.download.service.DownloadConnectedListener;
 import com.codyy.download.service.DownloadRateListener;
 import com.codyy.download.service.DownloadStatus;
 
@@ -41,7 +40,8 @@ public class MultiDownloadActivity extends AppCompatActivity {
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.rv);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         mFileEntities.add(new FileEntity("百度手机助手", getString(R.string.url_apk_file)));
-        mFileEntities.add(new FileEntity("resource", "http://reserver.9itest.com:8081/res/view/mobile/download/video/d908232052b84ef0bfa10152067339b8/396face834ca48dab37ad22c6323573b.do"));
+//        mFileEntities.add(new FileEntity("resource", "http://reserver.9itest.com:8081/res/view/mobile/download/video/d908232052b84ef0bfa10152067339b8/396face834ca48dab37ad22c6323573b.do"));
+        mFileEntities.add(new FileEntity("resource", "http://reserver.jxd.9itest.com:8091/res/view/mobile/download/video/e74f91af5dd74767b8ad96753b5fb3ee/19632d7b5cfe458b9fcfaef7811f88bb.do"));
         mFileEntities.add(new FileEntity("AndroidPDF", getString(R.string.url_small_file)));
         recyclerView.setAdapter(new FileAdapter(mFileEntities));
 //        Downloader.getInstance(getApplicationContext()).download(getString(R.string.url_apk_file));
@@ -62,6 +62,7 @@ public class MultiDownloadActivity extends AppCompatActivity {
                 Log.d("entity", entity.toString());
             }
         });
+        Downloader.getInstance(getApplicationContext()).setHoneyCombDownload(true);
     }
 
     @Override
