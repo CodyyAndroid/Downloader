@@ -51,6 +51,10 @@ public class Downloader {
         this.context = context;
     }
 
+    public static boolean isBound() {
+        return bound;
+    }
+
     /**
      * 获取下载器单例
      *
@@ -107,7 +111,27 @@ public class Downloader {
             }
         }, Context.BIND_AUTO_CREATE);
     }
+    public void setWifiDownload(boolean wifiDownload) {
+        if (mDownloadService != null) {
+            mDownloadService.setWifiDownload(wifiDownload);
+        }
+    }
 
+    public void setHoneyCombDownload(boolean honeyCombDownload) {
+        if (mDownloadService != null) {
+            mDownloadService.setHoneyCombDownload(honeyCombDownload);
+        }
+    }
+
+    public boolean isWifiDownload() {
+        if (mDownloadService == null) throw new NullPointerException("Download service is not started!");
+        return mDownloadService.isWifiDownload();
+    }
+
+    public boolean isHoneyCombDownload() {
+        if (mDownloadService == null) throw new NullPointerException("Download service is not started!");
+        return mDownloadService.isHoneyCombDownload();
+    }
     /**
      * 开始下载
      *

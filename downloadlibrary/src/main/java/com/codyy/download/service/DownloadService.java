@@ -1,7 +1,12 @@
 package com.codyy.download.service;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Environment;
@@ -10,9 +15,11 @@ import android.os.IBinder;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.codyy.download.Downloader;
 import com.codyy.download.db.DownloadDao;
 import com.codyy.download.db.DownloadDaoImpl;
 import com.codyy.download.entity.DownloadEntity;
@@ -33,7 +40,13 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static com.codyy.download.service.NetworkType.NETWORK_2G;
+import static com.codyy.download.service.NetworkType.NETWORK_3G;
+import static com.codyy.download.service.NetworkType.NETWORK_4G;
+import static com.codyy.download.service.NetworkType.NETWORK_WIFI;
+
 /**
+ * Download Service
  * Created by lijian on 2017/6/7.
  */
 
@@ -46,10 +59,21 @@ public class DownloadService extends Service implements Handler.Callback {
     private volatile static long sRates = 0;
     private Timer mTimer;
     private DownloadRateListener mRateListener;
+    /**
+     * wifi状态是否自动下载,默认为true
+     */
+    private boolean isWifiDownload = true;
+    /**
+     * 蜂窝数据状态是否自动下载,默认为false
+     */
+    private boolean isHoneyCombDownload = false;
+    private NetReceiver mNetReceiver;
 
     @Override
     public void onCreate() {
         super.onCreate();
+        mNetReceiver = new NetReceiver();
+        registerReceiver(mNetReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));//开启网络状态变化监测
         mHandler = new Handler(this);
         mDownloadDao = DownloadDaoImpl.getInstance(this);
     }
@@ -57,6 +81,7 @@ public class DownloadService extends Service implements Handler.Callback {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        unregisterReceiver(mNetReceiver);
         pauseAll();
         if (mTimer != null) {
             mTimer.cancel();
@@ -117,6 +142,37 @@ public class DownloadService extends Service implements Handler.Callback {
             }
         }
         sendPauseOrWaitingMessage(DownloadFlag.WAITING, downloadUrl);
+        networkType(downloadUrl, target);
+
+    }
+
+    private void networkType(@NonNull String downloadUrl, String target) {
+        switch (getNetworkType(getApplicationContext())) {
+            case NETWORK_2G:
+                if (isHoneyCombDownload) {
+                    startDownloadTask(downloadUrl, target);
+                }
+                break;
+            case NETWORK_3G:
+                if (isHoneyCombDownload) {
+                    startDownloadTask(downloadUrl, target);
+                }
+                break;
+            case NETWORK_4G:
+                if (isHoneyCombDownload) {
+                    startDownloadTask(downloadUrl, target);
+                }
+                break;
+            case NETWORK_WIFI:
+                startDownloadTask(downloadUrl, target);
+                break;
+            default:
+                startDownloadTask(downloadUrl, target);
+                break;
+        }
+    }
+
+    private void startDownloadTask(@NonNull String downloadUrl, String target) {
         DownThread thread = new DownThread(downloadUrl, target);
         mDownThreadMap.put(downloadUrl, thread);
         mThreadPoolUtils.execute(thread);
@@ -547,6 +603,148 @@ public class DownloadService extends Service implements Handler.Callback {
                 break;
         }
         return true;
+    }
+
+    private class NetReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction()) && Downloader.isBound()) {
+                switch (DownloadService.getNetworkType(context)) {
+                    case NETWORK_2G:
+                        startToDownload(context, Downloader.getInstance(context).isHoneyCombDownload());
+                        break;
+                    case NETWORK_3G:
+                        startToDownload(context, Downloader.getInstance(context).isHoneyCombDownload());
+                        break;
+                    case NETWORK_4G:
+                        startToDownload(context, Downloader.getInstance(context).isHoneyCombDownload());
+                        break;
+                    case NETWORK_WIFI:
+                        startToDownload(context, true);
+                        break;
+                    default:
+                        startToDownload(context, false);
+                        break;
+                }
+            }
+        }
+
+    }
+
+    /**
+     * 是否开始下载或暂停任务
+     *
+     * @param isStart true:开始下载未缓存完成任务;false:停止下载未缓存完成任务
+     */
+    private void startToDownload(Context context, boolean isStart) {
+        if (isStart) {
+            Downloader.getInstance(context).startAll();
+        } else {
+            Downloader.getInstance(context).pauseAll();
+        }
+    }
+
+    private static final int NETWORK_TYPE_GSM = 16;
+    private static final int NETWORK_TYPE_TD_SCDMA = 17;
+    private static final int NETWORK_TYPE_IWLAN = 18;
+
+    /**
+     * 获取当前网络类型
+     * <p>需添加权限 {@code <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>}</p>
+     *
+     * @return 网络类型
+     * <ul>
+     * <li>{@link NetworkType#NETWORK_WIFI   } </li>
+     * <li>{@link NetworkType#NETWORK_4G     } </li>
+     * <li>{@link NetworkType#NETWORK_3G     } </li>
+     * <li>{@link NetworkType#NETWORK_2G     } </li>
+     * <li>{@link NetworkType#NETWORK_UNKNOWN} </li>
+     * <li>{@link NetworkType#NETWORK_NO     } </li>
+     * </ul>
+     */
+    public static
+    @NetworkType
+    int getNetworkType(Context context) {
+        int netType = NetworkType.NETWORK_NO;
+        NetworkInfo info = getActiveNetworkInfo(context);
+        if (info != null && info.isAvailable()) {
+
+            if (info.getType() == ConnectivityManager.TYPE_WIFI) {
+                netType = NETWORK_WIFI;
+            } else if (info.getType() == ConnectivityManager.TYPE_MOBILE) {
+                switch (info.getSubtype()) {
+
+                    case NETWORK_TYPE_GSM:
+                    case TelephonyManager.NETWORK_TYPE_GPRS:
+                    case TelephonyManager.NETWORK_TYPE_CDMA:
+                    case TelephonyManager.NETWORK_TYPE_EDGE:
+                    case TelephonyManager.NETWORK_TYPE_1xRTT:
+                    case TelephonyManager.NETWORK_TYPE_IDEN:
+                        netType = NETWORK_2G;
+                        break;
+
+                    case NETWORK_TYPE_TD_SCDMA:
+                    case TelephonyManager.NETWORK_TYPE_EVDO_A:
+                    case TelephonyManager.NETWORK_TYPE_UMTS:
+                    case TelephonyManager.NETWORK_TYPE_EVDO_0:
+                    case TelephonyManager.NETWORK_TYPE_HSDPA:
+                    case TelephonyManager.NETWORK_TYPE_HSUPA:
+                    case TelephonyManager.NETWORK_TYPE_HSPA:
+                    case TelephonyManager.NETWORK_TYPE_EVDO_B:
+                    case TelephonyManager.NETWORK_TYPE_EHRPD:
+                    case TelephonyManager.NETWORK_TYPE_HSPAP:
+                        netType = NETWORK_3G;
+                        break;
+
+                    case NETWORK_TYPE_IWLAN:
+                    case TelephonyManager.NETWORK_TYPE_LTE:
+                        netType = NETWORK_4G;
+                        break;
+                    default:
+
+                        String subtypeName = info.getSubtypeName();
+                        if (subtypeName.equalsIgnoreCase("TD-SCDMA")
+                                || subtypeName.equalsIgnoreCase("WCDMA")
+                                || subtypeName.equalsIgnoreCase("CDMA2000")) {
+                            netType = NETWORK_3G;
+                        } else {
+                            netType = NetworkType.NETWORK_UNKNOWN;
+                        }
+                        break;
+                }
+            } else {
+                netType = NetworkType.NETWORK_UNKNOWN;
+            }
+        }
+        return netType;
+    }
+
+    /**
+     * 获取活动网络信息
+     * <p>需添加权限 {@code <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>}</p>
+     *
+     * @return NetworkInfo
+     */
+    private static NetworkInfo getActiveNetworkInfo(Context context) {
+        ConnectivityManager cm = (ConnectivityManager) context
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        return cm.getActiveNetworkInfo();
+    }
+
+    public void setWifiDownload(boolean wifiDownload) {
+        isWifiDownload = wifiDownload;
+    }
+
+    public void setHoneyCombDownload(boolean honeyCombDownload) {
+        isHoneyCombDownload = honeyCombDownload;
+    }
+
+    public boolean isWifiDownload() {
+        return isWifiDownload;
+    }
+
+    public boolean isHoneyCombDownload() {
+        return isHoneyCombDownload;
     }
 
 }

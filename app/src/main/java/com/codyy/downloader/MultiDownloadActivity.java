@@ -62,6 +62,7 @@ public class MultiDownloadActivity extends AppCompatActivity {
                 Log.d("entity", entity.toString());
             }
         });
+        Downloader.getInstance(getApplicationContext()).setHoneyCombDownload(true);
     }
 
     @Override
