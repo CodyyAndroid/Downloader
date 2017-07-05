@@ -8,11 +8,19 @@ public class FileEntity {
     public String path;
     public String fileName;
     public String thumbnails;
+    public String extra;
 
     public FileEntity(String path, String fileName, String thumbnails) {
         this.path = path;
         this.fileName = fileName;
         this.thumbnails = thumbnails;
+    }
+
+    public FileEntity(String path, String fileName, String thumbnails, String extra) {
+        this.path = path;
+        this.fileName = fileName;
+        this.thumbnails = thumbnails;
+        this.extra = extra;
     }
 
     public FileEntity(String path, String fileName) {

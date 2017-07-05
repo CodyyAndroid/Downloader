@@ -91,7 +91,7 @@ public class Downloader {
                     mConnectedListener.onConnected();
                 }
                 for (String key : mDownTasks.keySet()) {
-                    mDownloadService.download(key, mDownTasks.get(key).path, mDownTasks.get(key).fileName, mDownTasks.get(key).thumbnails);
+                    mDownloadService.download(key, mDownTasks.get(key).path, mDownTasks.get(key).fileName, mDownTasks.get(key).thumbnails, mDownTasks.get(key).extra);
                 }
                 for (String key : mReceiveDownloadStatus.keySet()) {
                     mDownloadService.receiveDownloadStatus(key, mReceiveDownloadStatus.get(key));
@@ -111,27 +111,45 @@ public class Downloader {
             }
         }, Context.BIND_AUTO_CREATE);
     }
+
+    /**
+     * 设置wifi状态是否自动下载
+     *
+     * @param wifiDownload 默认为true
+     */
     public void setWifiDownload(boolean wifiDownload) {
         if (mDownloadService != null) {
             mDownloadService.setWifiDownload(wifiDownload);
         }
     }
 
+    /**
+     * 设置蜂窝数据是否自动下载
+     *
+     * @param honeyCombDownload 默认为false
+     */
     public void setHoneyCombDownload(boolean honeyCombDownload) {
         if (mDownloadService != null) {
             mDownloadService.setHoneyCombDownload(honeyCombDownload);
         }
     }
 
+    /**
+     * 判断wifi状态是否可自动下载
+     * @return true:可自动下载;false:禁止自动下载
+     */
     public boolean isWifiDownload() {
-        if (mDownloadService == null) throw new NullPointerException("Download service is not started!");
-        return mDownloadService.isWifiDownload();
+        return mDownloadService != null && mDownloadService.isWifiDownload();
     }
 
+    /**
+     * 判断蜂窝数据状态是否可自动下载
+     * @return true:可自动下载;false:禁止自动下载
+     */
     public boolean isHoneyCombDownload() {
-        if (mDownloadService == null) throw new NullPointerException("Download service is not started!");
-        return mDownloadService.isHoneyCombDownload();
+        return mDownloadService != null && mDownloadService.isHoneyCombDownload();
     }
+
     /**
      * 开始下载
      *
@@ -145,7 +163,7 @@ public class Downloader {
      * 开始下载
      *
      * @param downloadUrl 下载地址
-     * @param title       自定义文件名称
+     * @param title       标题
      */
     public void download(@NonNull String downloadUrl, String title) {
         this.download(downloadUrl, null, title, null);
@@ -155,10 +173,22 @@ public class Downloader {
      * 开始下载
      *
      * @param downloadUrl 下载地址
-     * @param title       自定义文件名称
+     * @param title       标题
      */
     public void download(@NonNull String downloadUrl, String title, String thumbnails) {
-        this.download(downloadUrl, null, title, thumbnails);
+        this.download(downloadUrl, null, title, thumbnails, null);
+    }
+
+    /**
+     * 开始下载
+     *
+     * @param downloadUrl 下载地址
+     * @param title       标题
+     * @param thumbnails  缩略图地址
+     * @param extra       其他信息
+     */
+    public void download(@NonNull String downloadUrl, String title, String thumbnails, String extra) {
+        this.download(downloadUrl, null, title, thumbnails, extra);
     }
 
     /**
@@ -167,11 +197,13 @@ public class Downloader {
      * @param downloadUrl 下载地址
      * @param path        自定义文件保存路径
      * @param title       自定义文件保存名称
+     * @param thumbnails  缩略图地址
+     * @param extra       其他信息
      */
-    public void download(@NonNull String downloadUrl, String path, String title, String thumbnails) {
+    public void download(@NonNull String downloadUrl, String path, String title, String thumbnails, String extra) {
         if (!bound) startDownloadService();
         if (mDownloadService != null) {
-            mDownloadService.download(downloadUrl, path, title, thumbnails);
+            mDownloadService.download(downloadUrl, path, title, thumbnails, extra);
         } else {
             mDownTasks.put(downloadUrl, new FileEntity(path, title, thumbnails));
         }
