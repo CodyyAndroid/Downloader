@@ -10,6 +10,7 @@ import java.lang.annotation.RetentionPolicy;
 /**
  * 文件下载状态
  * Created by lijian on 2017/6/7.
+ * @version 0.2.9
  */
 @IntDef({DownloadFlag.NORMAL,
         DownloadFlag.WAITING,
