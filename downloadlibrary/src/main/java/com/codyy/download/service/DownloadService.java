@@ -324,6 +324,7 @@ public class DownloadService extends Service implements Handler.Callback {
             if (mDownThreadMap.containsKey(url)) {
                 mDownThreadMap.get(url).pause();
                 mDownThreadMap.remove(url);
+                sendPauseOrWaitingMessage(DownloadFlag.PAUSED, url);
             }
         }
     }
