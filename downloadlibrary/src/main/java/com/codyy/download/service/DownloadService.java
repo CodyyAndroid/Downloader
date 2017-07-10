@@ -109,7 +109,8 @@ public class DownloadService extends Service implements Handler.Callback {
      */
     public void startAll() {
         for (DownloadEntity entity : mDownloadDao.queryDoingOn()) {
-            download(entity.getUrl(), entity.getSavePath(), entity.getName(), entity.getThumbnails());
+            if (!mDownThreadMap.containsKey(entity.getUrl()))
+                download(entity.getUrl(), entity.getSavePath(), entity.getName(), entity.getThumbnails());
         }
     }
 
@@ -310,6 +311,7 @@ public class DownloadService extends Service implements Handler.Callback {
         for (String key : mDownThreadMap.keySet()) {
             sendPauseOrWaitingMessage(DownloadFlag.PAUSED, key);
         }
+        mDownThreadMap.clear();
     }
 
     /**
@@ -321,6 +323,7 @@ public class DownloadService extends Service implements Handler.Callback {
         for (String url : urls) {
             if (mDownThreadMap.containsKey(url)) {
                 mDownThreadMap.get(url).pause();
+                mDownThreadMap.remove(url);
             }
         }
     }
