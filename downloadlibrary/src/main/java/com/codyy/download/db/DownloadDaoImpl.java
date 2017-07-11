@@ -282,7 +282,7 @@ public class DownloadDaoImpl implements DownloadDao {
                 selectionArgs,
                 null,
                 null,
-                DownloadTable.COLUMN_NAME_DOWNLOAD_TIME + DBSelection.SELECTION_DESC
+                "cast ("+ DownloadTable.COLUMN_NAME_DOWNLOAD_TIME+" as INTEGER)" + DBSelection.SELECTION_DESC
         );
         while (cursor.moveToNext()) {
             list.add(getDownloadEntity(cursor));
@@ -303,7 +303,7 @@ public class DownloadDaoImpl implements DownloadDao {
                 selectionArgs,
                 null,
                 null,
-                DownloadTable.COLUMN_NAME_DOWNLOAD_TIME + DBSelection.SELECTION_DESC
+               "cast ("+ DownloadTable.COLUMN_NAME_DOWNLOAD_TIME+" as INTEGER)" + DBSelection.SELECTION_DESC
         );
         while (cursor.moveToNext()) {
             list.add(getDownloadEntity(cursor));
