@@ -44,12 +44,18 @@
             android:layout_height="wrap_content"
             android:onClick="getLoading"
             android:text="getLoading"/>
+
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:onClick="queryAll"
             android:text="queryAll"/>
     </LinearLayout>
+
+    <EditText
+        android:id="@+id/et"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
 
     <TextView
         android:id="@+id/tv_rate"

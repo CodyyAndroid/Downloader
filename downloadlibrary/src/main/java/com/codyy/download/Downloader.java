@@ -12,6 +12,7 @@ import com.codyy.download.entity.DownloadEntity;
 import com.codyy.download.entity.FileEntity;
 import com.codyy.download.service.DownLoadListener;
 import com.codyy.download.service.DownloadConnectedListener;
+import com.codyy.download.service.DownloadIsPauseAllListener;
 import com.codyy.download.service.DownloadRateListener;
 import com.codyy.download.service.DownloadService;
 
@@ -23,6 +24,7 @@ import java.util.Map;
 /**
  * 文件下载器
  * Created by lijian on 2017/6/7.
+ *
  * @version 0.2.9
  */
 
@@ -137,6 +139,7 @@ public class Downloader {
 
     /**
      * 判断wifi状态是否可自动下载
+     *
      * @return true:可自动下载;false:禁止自动下载
      */
     public boolean isWifiDownload() {
@@ -145,6 +148,7 @@ public class Downloader {
 
     /**
      * 判断蜂窝数据状态是否可自动下载
+     *
      * @return true:可自动下载;false:禁止自动下载
      */
     public boolean isHoneyCombDownload() {
@@ -326,6 +330,24 @@ public class Downloader {
     public void removeRateListener() {
         if (mDownloadService != null) {
             mDownloadService.removeRateListener();
+        }
+    }
+
+    /**
+     * 监听当前下载状态是否全部暂停,false:未全部暂停;true:全部暂停
+     */
+    public void addIsPauseAllListener(DownloadIsPauseAllListener listener) {
+        if (mDownloadService != null) {
+            mDownloadService.addIsPauseAllListener(listener);
+        }
+    }
+
+    /**
+     * 移除是否全部暂停监听
+     */
+    public void removeIsPauseAllListener() {
+        if (mDownloadService != null) {
+            mDownloadService.removeIsPauseAllListener();
         }
     }
 
