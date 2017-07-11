@@ -6,10 +6,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,6 +32,7 @@ import java.util.List;
 public class MultiDownloadActivity extends AppCompatActivity {
     private List<FileEntity> mFileEntities = new ArrayList<>();
     private TextView mTextView;
+    private EditText mEditText;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -37,6 +40,25 @@ public class MultiDownloadActivity extends AppCompatActivity {
         Downloader.init(this);
         setContentView(R.layout.activity_multi_download);
         mTextView = (TextView) findViewById(R.id.tv_rate);
+        mEditText = (EditText) findViewById(R.id.et);
+        mEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
+                if (keyEvent.getAction() == KeyEvent.KEYCODE_DEL) {
+                    Log.d("keyCode","del");
+                }
+                return false;
+            }
+        });
+        mEditText.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View view, int i, KeyEvent keyEvent) {
+                if (keyEvent.getKeyCode()== KeyEvent.KEYCODE_DEL) {
+                    Log.d("keyCode","del");
+                }
+                return false;
+            }
+        });
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.rv);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         mFileEntities.add(new FileEntity("百度手机助手", getString(R.string.url_apk_file)));
@@ -47,6 +69,14 @@ public class MultiDownloadActivity extends AppCompatActivity {
         recyclerView.setAdapter(new FileAdapter(mFileEntities));
 //        Downloader.getInstance(getApplicationContext()).download(getString(R.string.url_apk_file));
 //        Downloader.getInstance(getApplicationContext()).download(getString(R.string.url_small_file));
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        /*if (keyCode == KeyEvent.KEYCODE_DEL) {
+         Log.d("keyCode","del");
+        }*/
+        return super.onKeyDown(keyCode, event);
     }
 
     @Override

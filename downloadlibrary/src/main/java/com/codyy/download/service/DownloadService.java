@@ -59,6 +59,8 @@ public class DownloadService extends Service implements Handler.Callback {
     private volatile static long sRates = 0;
     private Timer mTimer;
     private DownloadRateListener mRateListener;
+    private DownloadIsPauseAllListener mIsPauseAllListener;
+
     /**
      * wifi状态是否自动下载,默认为true
      */
@@ -205,6 +207,14 @@ public class DownloadService extends Service implements Handler.Callback {
      */
     public void addRateListener(DownloadRateListener rateListener) {
         mRateListener = rateListener;
+    }
+
+    public void addIsPauseAllListener(DownloadIsPauseAllListener listener) {
+        mIsPauseAllListener = listener;
+    }
+
+    public void removeIsPauseAllListener() {
+        mIsPauseAllListener = null;
     }
 
     /**
@@ -547,6 +557,14 @@ public class DownloadService extends Service implements Handler.Callback {
 
     @Override
     public boolean handleMessage(Message msg) {
+        boolean isPauseAll = true;
+        for (DownloadEntity entity : mDownloadDao.queryDoingOn()) {
+            if (DownloadFlag.PAUSED != entity.getStatus()) {
+                isPauseAll = false;
+                break;
+            }
+        }
+        if (mIsPauseAllListener != null) mIsPauseAllListener.isPauseAll(isPauseAll);
         DownLoadListener downLoadListener = mDownLoadListeners.get(msg.getData().getString(DownloadExtra.EXTRA_URL));
         switch (msg.what) {
             case DownloadFlag.NORMAL:
