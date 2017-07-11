@@ -98,6 +98,12 @@ public class MultiDownloadActivity extends AppCompatActivity {
         }
     }
 
+    public void queryAll(View view) {
+        for (DownloadEntity entity : Downloader.getInstance(getApplicationContext()).getTotalDownloadRecords()) {
+            Log.d("queryAll", entity.getTime() + ":" + entity.getName());
+        }
+    }
+
     class FileViewHolder extends RecyclerViewHolder<FileEntity> {
         TextView tvName;
         TextView tvUrl;
