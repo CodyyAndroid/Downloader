@@ -16,11 +16,11 @@ allprojects {
 ```
 dependencies {
             //如果项目中已有com.android.support.*包,则从Downloader中剔除;
-	        compile('com.github.CodyyAndroid:Downloader:0.3.3') {
+	        compile('com.github.CodyyAndroid:Downloader:0.3.4') {
                    exclude group: 'com.android.support'
             }
             //如果项目中无com.android.support.*包,则保留;
-            compile('com.github.CodyyAndroid:Downloader:0.3.3')
+            compile('com.github.CodyyAndroid:Downloader:0.3.4')
 	}
 
 ```
