@@ -24,6 +24,6 @@ dependencies {
 	}
 
 ```
-## [API](https://codyyeachann.github.io/codyyeachann/)
+## [API](https://jitpack.io/com/github/CodyyAndroid/Downloader/0.3.4/javadoc/)
 
 
