@@ -32,7 +32,6 @@ dependencies {
     compile 'com.android.support:support-annotations:26.0.0-alpha1'
 }
 //---------------------------------------------
-
 // 指定编码
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
@@ -45,13 +44,21 @@ task sourcesJar(type: Jar) {
 }
 
 task javadoc(type: Javadoc) {
-    options.encoding = "UTF-8"
     failOnError  false
     source = android.sourceSets.main.java.sourceFiles
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     classpath += configurations.compile
 }
-
+javadoc {
+    options {
+        encoding "UTF-8"
+        charSet 'UTF-8'
+        author true
+        version true
+        links "http://docs.oracle.com/javase/7/docs/api"
+        title "下载库0.3.5"
+    }
+}
 // 制作文档(Javadoc)
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
