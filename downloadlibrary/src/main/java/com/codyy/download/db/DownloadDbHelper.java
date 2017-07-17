@@ -11,13 +11,14 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 class DownloadDbHelper extends SQLiteOpenHelper {
     // If you change the database schema, you must increment the database version.
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     private static final String DATABASE_NAME = "download.db";
     private static final String TEXT_TYPE = " TEXT";
     private static final String COMMA_SEP = ",";
     private static final String SQL_CREATE_ENTRIES =
             "CREATE TABLE " + DownloadTable.TABLE_NAME + " (" +
-                    DownloadTable.COLUMN_NAME_DOWNLOAD_URL + " TEXT PRIMARY KEY ," +
+                    DownloadTable.COLUMN_NAME_ID + " TEXT PRIMARY KEY ," +
+                    DownloadTable.COLUMN_NAME_DOWNLOAD_URL + TEXT_TYPE + COMMA_SEP +
                     DownloadTable.COLUMN_NAME_CURRENT_POSITION + TEXT_TYPE + COMMA_SEP +
                     DownloadTable.COLUMN_NAME_TOTAL_SIZE + TEXT_TYPE + COMMA_SEP +
                     DownloadTable.COLUMN_NAME_SAVE_PATH + TEXT_TYPE + COMMA_SEP +
@@ -42,7 +43,9 @@ class DownloadDbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL(SQL_DELETE_ENTRIES);
-        onCreate(db);
+        if(oldVersion==1&&newVersion==2) {
+            db.execSQL(SQL_DELETE_ENTRIES);
+            onCreate(db);
+        }
     }
 }

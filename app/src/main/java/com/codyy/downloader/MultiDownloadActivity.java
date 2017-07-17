@@ -154,7 +154,10 @@ public class MultiDownloadActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     if ("下载".equals(btn.getText().toString())) {
-                        Downloader.getInstance(itemView.getContext()).download(tvUrl.getText().toString());
+                        DownloadEntity entity = new DownloadEntity();
+                        entity.setId(tvUrl.getText().toString());
+                        entity.setUrl(tvUrl.getText().toString());
+                        Downloader.getInstance(itemView.getContext()).download(entity);
                     } else if ("暂停".equals(btn.getText().toString())) {
                         btn.setText("下载");
                         Downloader.getInstance(itemView.getContext()).pause(tvUrl.getText().toString());
