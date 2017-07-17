@@ -50,7 +50,8 @@ public class DownloadDaoImpl implements DownloadDao {
         int count = cursor.getCount();
         if (count > 0) {//如果数据库存在记录,但是文件已被删除,则从数据库删除记录
             cursor.moveToFirst();
-            if (!new File(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_SAVE_PATH))).exists() && Long.parseLong(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_TOTAL_SIZE))) > 0) {
+//            if (!new File(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_SAVE_PATH))).exists() && Long.parseLong(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_TOTAL_SIZE))) > 0) {
+            if (!new File(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_SAVE_PATH))).exists()) {
                 delete(url);
                 count = 0;
             }

@@ -17,7 +17,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.codyy.download.Downloader;
 import com.codyy.download.db.DownloadDao;
@@ -51,6 +50,7 @@ import static com.codyy.download.service.NetworkType.NETWORK_WIFI;
  */
 
 public class DownloadService extends Service implements Handler.Callback {
+    private static final String TAG = "DownloadService";
     private Handler mHandler;
     private Map<String, DownThread> mDownThreadMap = new HashMap<>();
     private Map<String, DownLoadListener> mDownLoadListeners = new HashMap<>();
@@ -74,8 +74,10 @@ public class DownloadService extends Service implements Handler.Callback {
     @Override
     public void onCreate() {
         super.onCreate();
+        Cog.d(TAG, "DownloadService onCreate");
         mNetReceiver = new NetReceiver();
         registerReceiver(mNetReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));//开启网络状态变化监测
+        Cog.d(TAG, "Network State Receiver register");
         mHandler = new Handler(this);
         mDownloadDao = DownloadDaoImpl.getInstance(this);
     }
@@ -84,6 +86,8 @@ public class DownloadService extends Service implements Handler.Callback {
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver(mNetReceiver);
+        Cog.d(TAG, "Network State Receiver register");
+        Cog.d(TAG, "Stop All Download Tasks");
         pauseAll();
         if (mTimer != null) {
             mTimer.cancel();
@@ -92,6 +96,7 @@ public class DownloadService extends Service implements Handler.Callback {
             mDownloadDao.closeDB();
         }
         mHandler = null;
+        Cog.d(TAG, "DownloadService onDestroy");
     }
 
     @Nullable
@@ -399,7 +404,7 @@ public class DownloadService extends Service implements Handler.Callback {
                 mDownloadDao.updateStatus(downloadUrl, DownloadFlag.PAUSED);
                 if (mDownloadDao.isPaused(downloadUrl))
                     sendPauseOrWaitingMessage(DownloadFlag.PAUSED, downloadUrl);
-                Log.d("Thread ", downloadUrl + " was paused");
+                Cog.d(TAG, "Thread" + downloadUrl + " was paused");
                 return;
             }
             if (!mDownloadDao.isExist(downloadUrl)) {//如果下载记录不存在或本地下载文件被删除,将重新开始下载
@@ -443,7 +448,7 @@ public class DownloadService extends Service implements Handler.Callback {
                     new File(savePath).delete();
                     String contentDisposition = new String(conn.getHeaderField("Content-Disposition").getBytes("UTF-8"), "UTF-8");
                     String filename = contentDisposition.substring(contentDisposition.indexOf("=") + 1);
-//                    Log.e("filename", filename.trim());
+//                    Cog.e("filename", filename.trim());
                     savePath = savePath.replace(".do", filename);
                     mDownloadDao.updatePath(downloadUrl, savePath);
                 }
@@ -569,26 +574,31 @@ public class DownloadService extends Service implements Handler.Callback {
         switch (msg.what) {
             case DownloadFlag.NORMAL:
                 if (downLoadListener != null) {
+                    Cog.d(TAG, "Download Start " + msg.getData().getString(DownloadExtra.EXTRA_URL));
                     downLoadListener.onStart();
                 }
                 break;
             case DownloadFlag.WAITING:
                 if (downLoadListener != null) {
+                    Cog.d(TAG, "Download Waiting" + msg.getData().getString(DownloadExtra.EXTRA_URL));
                     downLoadListener.onWaiting();
                 }
                 break;
             case DownloadFlag.PROGRESS:
                 if (downLoadListener != null) {
+                    Cog.d(TAG, "Download Progress " + ((DownloadStatus) msg.obj).getPercent() + " url:" + msg.getData().getString(DownloadExtra.EXTRA_URL));
                     downLoadListener.onProgress((DownloadStatus) msg.obj);
                 }
                 break;
             case DownloadFlag.PAUSED:
                 if (downLoadListener != null) {
+                    Cog.d(TAG, "Download Pause" + msg.getData().getString(DownloadExtra.EXTRA_URL));
                     downLoadListener.onPause();
                 }
                 break;
             case DownloadFlag.COMPLETED:
                 if (downLoadListener != null) {
+                    Cog.d(TAG, "Download Complete" + msg.getData().getString(DownloadExtra.EXTRA_URL));
                     downLoadListener.onComplete();
                 }
                 if (mRateListener != null) {
@@ -605,21 +615,25 @@ public class DownloadService extends Service implements Handler.Callback {
                 break;
             case DownloadFlag.FAILED:
                 if (downLoadListener != null) {
+                    Cog.e(TAG, "Download Failure" + msg.getData().getString(DownloadExtra.EXTRA_URL));
                     downLoadListener.onFailure((Integer) msg.obj);
                 }
                 break;
             case DownloadFlag.ERROR:
                 if (downLoadListener != null) {
+                    Cog.e(TAG, "Download Error" + msg.getData().getString(DownloadExtra.EXTRA_URL));
                     downLoadListener.onError((Exception) msg.obj);
                 }
                 break;
             case DownloadFlag.DELETED:
                 if (downLoadListener != null) {
+                    Cog.d(TAG, "Download Deleted" + msg.getData().getString(DownloadExtra.EXTRA_URL));
                     downLoadListener.onDelete();
                 }
                 break;
             case DownloadFlag.RATING:
                 if (mRateListener != null) {
+//                    Cog.d(TAG, "Download Rating" + msg.getData().getString(DownloadExtra.EXTRA_URL) + msg.getData().getString(DownloadExtra.EXTRA_RATE) + msg.getData().getInt(DownloadExtra.EXTRA_COUNT, 0));
                     mRateListener.onRate(msg.getData().getString(DownloadExtra.EXTRA_RATE), msg.getData().getInt(DownloadExtra.EXTRA_COUNT, 0));
                 }
                 break;
