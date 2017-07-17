@@ -37,7 +37,7 @@ public class MultiDownloadActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Downloader.init(this);
+        Downloader.init(this, BuildConfig.DEBUG);
         setContentView(R.layout.activity_multi_download);
         mTextView = (TextView) findViewById(R.id.tv_rate);
         mEditText = (EditText) findViewById(R.id.et);
@@ -45,7 +45,7 @@ public class MultiDownloadActivity extends AppCompatActivity {
             @Override
             public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
                 if (keyEvent.getAction() == KeyEvent.KEYCODE_DEL) {
-                    Log.d("keyCode","del");
+                    Log.d("keyCode", "del");
                 }
                 return false;
             }
@@ -53,8 +53,8 @@ public class MultiDownloadActivity extends AppCompatActivity {
         mEditText.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View view, int i, KeyEvent keyEvent) {
-                if (keyEvent.getKeyCode()== KeyEvent.KEYCODE_DEL) {
-                    Log.d("keyCode","del");
+                if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_DEL) {
+                    Log.d("keyCode", "del");
                 }
                 return false;
             }

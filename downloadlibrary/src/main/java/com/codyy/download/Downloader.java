@@ -25,7 +25,7 @@ import java.util.Map;
  * 文件下载器
  * Created by lijian on 2017/6/7.
  *
- * @version 0.2.9
+ * @version 0.3.5
  */
 
 public class Downloader {
@@ -35,7 +35,9 @@ public class Downloader {
      * DownloadService是否绑定
      */
     private volatile static boolean bound = false;
+    public static boolean DEBUG = false;
     private Context context;
+
     /**
      * 下载服务
      */
@@ -73,10 +75,19 @@ public class Downloader {
         return INSTANCE;
     }
 
+    private static void initDebug(boolean debug) {
+        DEBUG = debug;
+    }
+
     /**
      * 增加初始化方法
      */
     public static void init(Context context) {
+        getInstance(context).startDownloadService();
+    }
+
+    public static void init(Context context, boolean debug) {
+        initDebug(debug);
         getInstance(context).startDownloadService();
     }
 
