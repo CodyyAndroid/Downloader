@@ -263,7 +263,7 @@ public class DownloadDaoImpl implements DownloadDao {
             if (entity.getSavePath() != null && entity.getTotal() > 0) {
                 File file = new File(entity.getSavePath());
                 if (!file.exists()) {
-                    delete(entity.getUrl());
+                    delete(entity.getId());
                     entity = null;
                 }
             }
