@@ -25,10 +25,14 @@ import java.util.Map;
  * 文件下载器
  * Created by lijian on 2017/6/7.
  *
- * @version 0.3.5
+ * @version 1.0.3
  */
 
 public class Downloader {
+    /**
+     * 存储空间不足action
+     */
+    public static final String ACTION_DOWNLOAD_OUT_OF_MEMORY="action.download.out.of.memory";
     @SuppressLint("StaticFieldLeak")
     private static volatile Downloader INSTANCE;
     /**

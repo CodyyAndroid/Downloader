@@ -13,8 +13,10 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.StatFs;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 
@@ -122,7 +124,6 @@ public class DownloadService extends Service implements Handler.Callback {
     }
 
 
-
     public void download(@NonNull DownloadEntity entity) {
         String target = getSavePath(entity.getUrl(), entity.getSavePath());
         if (!mDownloadDao.isExist(entity.getId())) {
@@ -136,14 +137,14 @@ public class DownloadService extends Service implements Handler.Callback {
             }
         }
         sendPauseOrWaitingMessage(DownloadFlag.WAITING, entity.getId());
-        networkType(entity.getId(), target,entity.getUrl());
+        networkType(entity.getId(), target, entity.getUrl());
     }
 
-    private void networkType(@NonNull String id, String target,String url) {
+    private void networkType(@NonNull String id, String target, String url) {
         switch (getNetworkType(getApplicationContext())) {
             case NETWORK_2G:
                 if (isHoneyCombDownload) {
-                    startDownloadTask(id, target,url);
+                    startDownloadTask(id, target, url);
                 }
                 break;
             case NETWORK_3G:
@@ -166,7 +167,7 @@ public class DownloadService extends Service implements Handler.Callback {
     }
 
     private void startDownloadTask(@NonNull String id, String target, String url) {
-        DownThread thread = new DownThread(id, target,url);
+        DownThread thread = new DownThread(id, target, url);
         mDownThreadMap.put(id, thread);
         mThreadPoolUtils.execute(thread);
     }
@@ -183,7 +184,7 @@ public class DownloadService extends Service implements Handler.Callback {
     /**
      * 接收下载状态
      *
-     * @param id  下载地址
+     * @param id           下载地址
      * @param loadListener 监听
      */
     public void receiveDownloadStatus(@NonNull String id, @NonNull DownLoadListener loadListener) {
@@ -372,7 +373,7 @@ public class DownloadService extends Service implements Handler.Callback {
         DownThread(@NonNull String id, @NonNull String target, String url) {
             this.id = id;
             this.savePath = target;
-            this.downloadUrl=url;
+            this.downloadUrl = url;
         }
 
         /**
@@ -443,6 +444,10 @@ public class DownloadService extends Service implements Handler.Callback {
                 currentPart.setLength(totalSize);
                 currentPart.close();
                 if (conn.getResponseCode() == 206) {
+                    if (totalSize > getAvailableStore()) {
+                        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(new Intent(Downloader.ACTION_DOWNLOAD_OUT_OF_MEMORY));
+                    }
+                    pause();
                     currentPart = new RandomAccessFile(savePath, DownloadExtra.RANDOM_ACCESS_FILE_MODE);
                     currentPart.seek(range);
                     sendStartOrCompleteMessage(DownloadFlag.NORMAL, id);
@@ -490,6 +495,53 @@ public class DownloadService extends Service implements Handler.Callback {
 
             }
         }
+    }
+
+    // 获取SD卡路径
+    private static String getExternalStoragePath() {
+        // 获取SdCard状态
+        String state = android.os.Environment.getExternalStorageState();
+
+        // 判断SdCard是否存在并且是可用的
+
+        if (android.os.Environment.MEDIA_MOUNTED.equals(state)) {
+
+            if (android.os.Environment.getExternalStorageDirectory().canWrite()) {
+
+                return android.os.Environment.getExternalStorageDirectory()
+                        .getPath();
+
+            }
+
+        }
+
+        return null;
+
+    }
+
+    private static long getAvailableStore() {
+        String path = getExternalStoragePath();
+        if (path == null) return -1;
+        // 取得sdcard文件路径
+
+        StatFs statFs = new StatFs(path);
+
+        // 获取block的SIZE
+
+        long blocSize = statFs.getBlockSize();
+
+        // 获取BLOCK数量
+
+        // long totalBlocks = statFs.getBlockCount();
+
+        // 可使用的Block的数量
+
+        long availaBlock = statFs.getAvailableBlocks();
+
+        // long total = totalBlocks * blocSize;
+
+        return availaBlock * blocSize;
+
     }
 
     private void sendStartOrCompleteMessage(@DownloadFlag int status, String id) {
