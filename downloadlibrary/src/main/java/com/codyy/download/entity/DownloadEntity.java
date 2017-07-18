@@ -9,6 +9,7 @@ import java.io.Serializable;
  */
 
 public class DownloadEntity implements Serializable {
+    private String id;
     private long current;
     private long total;
     private String url;
@@ -19,6 +20,9 @@ public class DownloadEntity implements Serializable {
     private long time;
     private String extra1;
     private String extra2;
+
+    public DownloadEntity() {
+    }
 
     public DownloadEntity(long current, long total, String url, String savePath, String name, int status) {
         this.current = current;
@@ -83,6 +87,28 @@ public class DownloadEntity implements Serializable {
         this.time = time;
         this.extra1 = extra1;
         this.extra2 = extra2;
+    }
+
+    public DownloadEntity(String id, long current, long total, String url, String savePath, String name, int status, String thumbnails, long time, String extra1, String extra2) {
+        this.id = id;
+        this.current = current;
+        this.total = total;
+        this.url = url;
+        this.savePath = savePath;
+        this.name = name;
+        this.status = status;
+        this.thumbnails = thumbnails;
+        this.time = time;
+        this.extra1 = extra1;
+        this.extra2 = extra2;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public long getTime() {
@@ -170,7 +196,8 @@ public class DownloadEntity implements Serializable {
     @Override
     public String toString() {
         return "DownloadEntity{" +
-                "current=" + current +
+                "id='" + id + '\'' +
+                ", current=" + current +
                 ", total=" + total +
                 ", url='" + url + '\'' +
                 ", savePath='" + savePath + '\'' +

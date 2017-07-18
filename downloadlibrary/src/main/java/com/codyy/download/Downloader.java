@@ -7,9 +7,9 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import com.codyy.download.entity.DownloadEntity;
-import com.codyy.download.entity.FileEntity;
 import com.codyy.download.service.DownLoadListener;
 import com.codyy.download.service.DownloadConnectedListener;
 import com.codyy.download.service.DownloadIsPauseAllListener;
@@ -50,7 +50,7 @@ public class Downloader {
     /**
      * 下载服务连接成功前,缓存下载任务
      */
-    private Map<String, FileEntity> mDownTasks = new HashMap<>();
+    private Map<String, DownloadEntity> mDownTasks = new HashMap<>();
 
     private Downloader(Context context) {
         this.context = context;
@@ -105,7 +105,7 @@ public class Downloader {
                     mConnectedListener.onConnected();
                 }
                 for (String key : mDownTasks.keySet()) {
-                    mDownloadService.download(key, mDownTasks.get(key).path, mDownTasks.get(key).fileName, mDownTasks.get(key).thumbnails, mDownTasks.get(key).extra);
+                    mDownloadService.download(mDownTasks.get(key));
                 }
                 for (String key : mReceiveDownloadStatus.keySet()) {
                     mDownloadService.receiveDownloadStatus(key, mReceiveDownloadStatus.get(key));
@@ -168,82 +168,35 @@ public class Downloader {
 
     /**
      * 开始下载
-     *
-     * @param downloadUrl 下载地址
      */
-    public void download(@NonNull String downloadUrl) {
-        this.download(downloadUrl, null);
-    }
-
-    /**
-     * 开始下载
-     *
-     * @param downloadUrl 下载地址
-     * @param title       标题
-     */
-    public void download(@NonNull String downloadUrl, String title) {
-        this.download(downloadUrl, null, title, null);
-    }
-
-    /**
-     * 开始下载
-     *
-     * @param downloadUrl 下载地址
-     * @param title       标题
-     */
-    public void download(@NonNull String downloadUrl, String title, String thumbnails) {
-        this.download(downloadUrl, null, title, thumbnails, null);
-    }
-
-    /**
-     * 开始下载
-     *
-     * @param downloadUrl 下载地址
-     * @param title       标题
-     * @param thumbnails  缩略图地址
-     * @param extra       其他信息
-     */
-    public void download(@NonNull String downloadUrl, String title, String thumbnails, String extra) {
-        this.download(downloadUrl, null, title, thumbnails, extra);
-    }
-
-    /**
-     * 开始下载
-     *
-     * @param downloadUrl 下载地址
-     * @param path        自定义文件保存路径
-     * @param title       自定义文件保存名称
-     * @param thumbnails  缩略图地址
-     * @param extra       其他信息
-     */
-    public void download(@NonNull String downloadUrl, String path, String title, String thumbnails, String extra) {
+    public void download(@NonNull DownloadEntity entity) {
         if (!bound) startDownloadService();
         if (mDownloadService != null) {
-            mDownloadService.download(downloadUrl, path, title, thumbnails, extra);
+            mDownloadService.download(entity);
         } else {
-            mDownTasks.put(downloadUrl, new FileEntity(path, title, thumbnails));
+            mDownTasks.put(TextUtils.isEmpty(entity.getId())?entity.getUrl():entity.getId(), entity);
         }
     }
 
     /**
      * 暂停下载
      *
-     * @param urls 下载地址
+     * @param ids 下载地址
      */
-    public void pause(@NonNull String... urls) {
+    public void pause(@NonNull String... ids) {
         if (mDownloadService != null) {
-            mDownloadService.pause(urls);
+            mDownloadService.pause(ids);
         }
     }
 
     /**
      * 暂停下载
      *
-     * @param urls 下载地址
+     * @param ids 下载地址
      */
-    public void pause(@NonNull List<String> urls) {
+    public void pause(@NonNull List<String> ids) {
         if (mDownloadService != null) {
-            mDownloadService.pause((String[]) urls.toArray());
+            mDownloadService.pause((String[]) ids.toArray());
         }
     }
 
@@ -269,30 +222,30 @@ public class Downloader {
     /**
      * 删除下载任务
      *
-     * @param urls 下载地址
+     * @param ids 下载地址
      */
-    public void delete(@NonNull String... urls) {
-        this.delete(false, urls);
+    public void delete(@NonNull String... ids) {
+        this.delete(false, ids);
     }
 
     /**
      * 删除下载任务
      *
-     * @param urls 下载地址
+     * @param ids 下载地址
      */
-    public void delete(@NonNull List<String> urls) {
-        this.delete(false, (String[]) urls.toArray());
+    public void delete(@NonNull List<String> ids) {
+        this.delete(false, (String[]) ids.toArray());
     }
 
     /**
      * 删除下载任务
      *
      * @param isRetained true:保留下载文件,只删除记录;false:文件及记录均删除
-     * @param urls
+     * @param ids
      */
-    public void delete(boolean isRetained, @NonNull String... urls) {
+    public void delete(boolean isRetained, @NonNull String... ids) {
         if (mDownloadService != null) {
-            mDownloadService.delete(isRetained, urls);
+            mDownloadService.delete(isRetained, ids);
         }
     }
 
@@ -308,15 +261,15 @@ public class Downloader {
     /**
      * 接收下载状态
      *
-     * @param downloadUrl  下载地址
+     * @param id  下载地址
      * @param loadListener 状态监听
      */
-    public void receiveDownloadStatus(@NonNull String downloadUrl, @NonNull DownLoadListener loadListener) {
+    public void receiveDownloadStatus(@NonNull String id, @NonNull DownLoadListener loadListener) {
         if (!bound) startDownloadService();
         if (mDownloadService != null) {
-            mDownloadService.receiveDownloadStatus(downloadUrl, loadListener);
+            mDownloadService.receiveDownloadStatus(id, loadListener);
         } else {
-            mReceiveDownloadStatus.put(downloadUrl, loadListener);
+            mReceiveDownloadStatus.put(id, loadListener);
         }
     }
 
@@ -387,12 +340,12 @@ public class Downloader {
     /**
      * 获取指定下载记录
      *
-     * @param url 下载地址
+     * @param id 下载地址
      * @return entity
      */
-    public DownloadEntity getDownloadRecord(String url) {
+    public DownloadEntity getDownloadRecord(String id) {
         if (mDownloadService != null) {
-            return mDownloadService.getDownloadRecord(url);
+            return mDownloadService.getDownloadRecord(id);
         }
         return null;
     }

@@ -14,7 +14,7 @@ import java.lang.annotation.RetentionPolicy;
 public @interface DownloadExtra {
     String EXTRA_RATE = "rate";
     String EXTRA_COUNT = "count";
-    String EXTRA_URL = "url";
+    String EXTRA_ID = "id";
     String REQUEST_METHOD = "GET";
     String REQUEST_PROPERTY_KEY1 = "Accept";
     String REQUEST_PROPERTY_VALUE1 = "*/*";

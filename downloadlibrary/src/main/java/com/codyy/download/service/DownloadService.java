@@ -116,73 +116,58 @@ public class DownloadService extends Service implements Handler.Callback {
      */
     public void startAll() {
         for (DownloadEntity entity : mDownloadDao.queryDoingOn()) {
-            if (!mDownThreadMap.containsKey(entity.getUrl()))
-                download(entity.getUrl(), entity.getSavePath(), entity.getName(), entity.getThumbnails());
+            if (!mDownThreadMap.containsKey(entity.getId()))
+                download(entity);
         }
     }
 
-    /**
-     * 执行下载
-     *
-     * @param downloadUrl 下载地址
-     * @param path        保存路径(默认地址为Download)
-     * @param title       文件标题
-     * @param thumbnails  缩略图地址
-     */
-    public void download(@NonNull String downloadUrl, String path, String title, String thumbnails) {
-        this.download(downloadUrl, path, title, thumbnails, null);
-    }
 
-    public void download(@NonNull String downloadUrl, String path, String title, String thumbnails, String extra1) {
-        this.download(downloadUrl, path, title, thumbnails, extra1, null);
-    }
 
-    public void download(@NonNull String downloadUrl, String path, String title, String thumbnails, String extra1, String extra2) {
-        String target = getSavePath(downloadUrl, path);
-        if (!mDownloadDao.isExist(downloadUrl)) {
-            mDownloadDao.save(new DownloadEntity(0, 0, downloadUrl, target, TextUtils.isEmpty(title) ? downloadUrl.substring(downloadUrl.lastIndexOf(File.separator) + 1) : title, DownloadFlag.WAITING, TextUtils.isEmpty(thumbnails) ? "" : thumbnails, System.currentTimeMillis(), extra1, extra2));
+    public void download(@NonNull DownloadEntity entity) {
+        String target = getSavePath(entity.getUrl(), entity.getSavePath());
+        if (!mDownloadDao.isExist(entity.getId())) {
+            mDownloadDao.save(new DownloadEntity(TextUtils.isEmpty(entity.getId()) ? entity.getUrl() : entity.getId(), 0, 0, entity.getUrl(), target, TextUtils.isEmpty(entity.getName()) ? entity.getUrl().substring(entity.getUrl().lastIndexOf(File.separator) + 1) : entity.getName(), DownloadFlag.WAITING, TextUtils.isEmpty(entity.getThumbnails()) ? "" : entity.getThumbnails(), System.currentTimeMillis(), entity.getExtra1(), entity.getExtra2()));
         } else {
-            DownloadEntity entity = mDownloadDao.query(downloadUrl);
-            if (entity.getStatus() == DownloadFlag.COMPLETED) {
+            DownloadEntity downloadEntity = mDownloadDao.query(entity.getId());
+            if (downloadEntity.getStatus() == DownloadFlag.COMPLETED) {
                 return;
             } else {
-                mDownloadDao.updateProgress(downloadUrl, entity.getCurrent(), entity.getTotal(), DownloadFlag.WAITING);
+                mDownloadDao.updateProgress(entity.getId(), downloadEntity.getCurrent(), downloadEntity.getTotal(), DownloadFlag.WAITING);
             }
         }
-        sendPauseOrWaitingMessage(DownloadFlag.WAITING, downloadUrl);
-        networkType(downloadUrl, target);
-
+        sendPauseOrWaitingMessage(DownloadFlag.WAITING, entity.getId());
+        networkType(entity.getId(), target,entity.getUrl());
     }
 
-    private void networkType(@NonNull String downloadUrl, String target) {
+    private void networkType(@NonNull String id, String target,String url) {
         switch (getNetworkType(getApplicationContext())) {
             case NETWORK_2G:
                 if (isHoneyCombDownload) {
-                    startDownloadTask(downloadUrl, target);
+                    startDownloadTask(id, target,url);
                 }
                 break;
             case NETWORK_3G:
                 if (isHoneyCombDownload) {
-                    startDownloadTask(downloadUrl, target);
+                    startDownloadTask(id, target, url);
                 }
                 break;
             case NETWORK_4G:
                 if (isHoneyCombDownload) {
-                    startDownloadTask(downloadUrl, target);
+                    startDownloadTask(id, target, url);
                 }
                 break;
             case NETWORK_WIFI:
-                startDownloadTask(downloadUrl, target);
+                startDownloadTask(id, target, url);
                 break;
             default:
-                startDownloadTask(downloadUrl, target);
+                startDownloadTask(id, target, url);
                 break;
         }
     }
 
-    private void startDownloadTask(@NonNull String downloadUrl, String target) {
-        DownThread thread = new DownThread(downloadUrl, target);
-        mDownThreadMap.put(downloadUrl, thread);
+    private void startDownloadTask(@NonNull String id, String target, String url) {
+        DownThread thread = new DownThread(id, target,url);
+        mDownThreadMap.put(id, thread);
         mThreadPoolUtils.execute(thread);
     }
 
@@ -198,11 +183,11 @@ public class DownloadService extends Service implements Handler.Callback {
     /**
      * 接收下载状态
      *
-     * @param downloadUrl  下载地址
+     * @param id  下载地址
      * @param loadListener 监听
      */
-    public void receiveDownloadStatus(@NonNull String downloadUrl, @NonNull DownLoadListener loadListener) {
-        mDownLoadListeners.put(downloadUrl, loadListener);
+    public void receiveDownloadStatus(@NonNull String id, @NonNull DownLoadListener loadListener) {
+        mDownLoadListeners.put(id, loadListener);
     }
 
     /**
@@ -291,17 +276,17 @@ public class DownloadService extends Service implements Handler.Callback {
      * 删除下载记录
      *
      * @param isRetained 是否保留已下载的文件 true:保留;false:删除
-     * @param urls
+     * @param ids
      */
-    public void delete(boolean isRetained, @NonNull String... urls) {
-        for (String url : urls) {
-            if (mDownThreadMap.containsKey(url)) {
-                mDownThreadMap.get(url).pause();
-                mDownThreadMap.remove(url);
+    public void delete(boolean isRetained, @NonNull String... ids) {
+        for (String id : ids) {
+            if (mDownThreadMap.containsKey(id)) {
+                mDownThreadMap.get(id).pause();
+                mDownThreadMap.remove(id);
             }
-            mDownloadDao.delete(url, isRetained);
-            if (mDownLoadListeners.containsKey(url)) {
-                mDownLoadListeners.remove(url);
+            mDownloadDao.delete(id, isRetained);
+            if (mDownLoadListeners.containsKey(id)) {
+                mDownLoadListeners.remove(id);
             }
 //            sendDeleteMessage(DownloadFlag.DELETED, url);
         }
@@ -310,10 +295,10 @@ public class DownloadService extends Service implements Handler.Callback {
     /**
      * 删除下载记录(默认删除本地文件)
      *
-     * @param urls
+     * @param ids
      */
-    public void delete(@NonNull String... urls) {
-        this.delete(false, urls);
+    public void delete(@NonNull String... ids) {
+        this.delete(false, ids);
     }
 
     /**
@@ -332,14 +317,14 @@ public class DownloadService extends Service implements Handler.Callback {
     /**
      * 暂停下载
      *
-     * @param urls 地址
+     * @param ids 地址
      */
-    public void pause(@NonNull String... urls) {
-        for (String url : urls) {
-            if (mDownThreadMap.containsKey(url)) {
-                mDownThreadMap.get(url).pause();
-                mDownThreadMap.remove(url);
-                sendPauseOrWaitingMessage(DownloadFlag.PAUSED, url);
+    public void pause(@NonNull String... ids) {
+        for (String id : ids) {
+            if (mDownThreadMap.containsKey(id)) {
+                mDownThreadMap.get(id).pause();
+                mDownThreadMap.remove(id);
+                sendPauseOrWaitingMessage(DownloadFlag.PAUSED, id);
             }
         }
     }
@@ -365,8 +350,8 @@ public class DownloadService extends Service implements Handler.Callback {
     /**
      * 根据url获取下载记录
      */
-    public DownloadEntity getDownloadRecord(String url) {
-        return mDownloadDao.query(url);
+    public DownloadEntity getDownloadRecord(String id) {
+        return mDownloadDao.query(id);
     }
 
     /**
@@ -377,15 +362,17 @@ public class DownloadService extends Service implements Handler.Callback {
         int length;
         private HttpURLConnection conn;
         private InputStream inStream;
+        private String id;
         private String downloadUrl;
         private String savePath;
         private DownloadEntity mDownloadEntity;
         private long totalSize;
         private volatile boolean isPaused;
 
-        DownThread(@NonNull String url, @NonNull String target) {
-            this.downloadUrl = url;
+        DownThread(@NonNull String id, @NonNull String target, String url) {
+            this.id = id;
             this.savePath = target;
+            this.downloadUrl=url;
         }
 
         /**
@@ -394,27 +381,27 @@ public class DownloadService extends Service implements Handler.Callback {
         void pause() {
             isPaused = true;
             if (mDownloadStatus != null)
-                mDownloadDao.updateProgress(downloadUrl, mDownloadStatus.getDownloadSize(), mDownloadStatus.getTotalSize(), DownloadFlag.PAUSED);
+                mDownloadDao.updateProgress(id, mDownloadStatus.getDownloadSize(), mDownloadStatus.getTotalSize(), DownloadFlag.PAUSED);
         }
 
 
         @Override
         public void run() {
             if (isPaused) {
-                mDownloadDao.updateStatus(downloadUrl, DownloadFlag.PAUSED);
-                if (mDownloadDao.isPaused(downloadUrl))
-                    sendPauseOrWaitingMessage(DownloadFlag.PAUSED, downloadUrl);
-                Cog.d(TAG, "Thread" + downloadUrl + " was paused");
+                mDownloadDao.updateStatus(id, DownloadFlag.PAUSED);
+                if (mDownloadDao.isPaused(id))
+                    sendPauseOrWaitingMessage(DownloadFlag.PAUSED, id);
+                Cog.d(TAG, "Thread" + id + " was paused");
                 return;
             }
-            if (!mDownloadDao.isExist(downloadUrl)) {//如果下载记录不存在或本地下载文件被删除,将重新开始下载
+            if (!mDownloadDao.isExist(id)) {//如果下载记录不存在或本地下载文件被删除,将重新开始下载
                 start(0);
             } else {
-                mDownloadEntity = mDownloadDao.query(downloadUrl);//获取下载记录
+                mDownloadEntity = mDownloadDao.query(id);//获取下载记录
                 if (mDownloadEntity != null) {
-                    sendProgressMessage(new DownloadStatus(mDownloadEntity.getCurrent(), mDownloadEntity.getTotal()), downloadUrl);//记录不为空,发送当前下载进度消息
+                    sendProgressMessage(new DownloadStatus(mDownloadEntity.getCurrent(), mDownloadEntity.getTotal()), id);//记录不为空,发送当前下载进度消息
                     if (mDownloadEntity.getCurrent() == mDownloadEntity.getTotal() && mDownloadEntity.getStatus() == DownloadFlag.COMPLETED) {
-                        sendStartOrCompleteMessage(DownloadFlag.COMPLETED, downloadUrl);//如果status=DownloadFlag.COMPLETED,发送文件下载完成消息
+                        sendStartOrCompleteMessage(DownloadFlag.COMPLETED, id);//如果status=DownloadFlag.COMPLETED,发送文件下载完成消息
                     } else {
                         start(mDownloadEntity.getCurrent());//存在下载记录,并且未完成,则从当前位置开始下载
                     }
@@ -450,7 +437,7 @@ public class DownloadService extends Service implements Handler.Callback {
                     String filename = contentDisposition.substring(contentDisposition.indexOf("=") + 1);
 //                    Cog.e("filename", filename.trim());
                     savePath = savePath.replace(".do", filename);
-                    mDownloadDao.updatePath(downloadUrl, savePath);
+                    mDownloadDao.updatePath(id, savePath);
                 }
                 currentPart = new RandomAccessFile(savePath, DownloadExtra.RANDOM_ACCESS_FILE_MODE);
                 currentPart.setLength(totalSize);
@@ -458,11 +445,11 @@ public class DownloadService extends Service implements Handler.Callback {
                 if (conn.getResponseCode() == 206) {
                     currentPart = new RandomAccessFile(savePath, DownloadExtra.RANDOM_ACCESS_FILE_MODE);
                     currentPart.seek(range);
-                    sendStartOrCompleteMessage(DownloadFlag.NORMAL, downloadUrl);
+                    sendStartOrCompleteMessage(DownloadFlag.NORMAL, id);
                     inStream = conn.getInputStream();
                     byte[] buffer = new byte[4096];
                     int hasRead;
-                    while (!mDownloadDao.isPaused(downloadUrl) && length < totalSize && (hasRead = inStream.read(buffer)) != -1) {
+                    while (!mDownloadDao.isPaused(id) && length < totalSize && (hasRead = inStream.read(buffer)) != -1) {
                         currentPart.write(buffer, 0, hasRead);
                         length += hasRead;
                         if (mRateListener != null) {
@@ -471,22 +458,22 @@ public class DownloadService extends Service implements Handler.Callback {
                             sRates = 0;
                         }
                         mDownloadStatus = range == 0 ? new DownloadStatus(length, totalSize) : new DownloadStatus((length + mDownloadEntity.getCurrent()), totalSize);
-                        sendProgressMessage(mDownloadStatus, downloadUrl);
+                        sendProgressMessage(mDownloadStatus, id);
                         if (mDownloadStatus.getPercentNumber() >= 100 && mHandler != null) {
-                            mDownloadDao.updateProgress(downloadUrl, mDownloadStatus.getDownloadSize(), mDownloadStatus.getTotalSize(), DownloadFlag.COMPLETED);
-                            sendStartOrCompleteMessage(DownloadFlag.COMPLETED, downloadUrl);
+                            mDownloadDao.updateProgress(id, mDownloadStatus.getDownloadSize(), mDownloadStatus.getTotalSize(), DownloadFlag.COMPLETED);
+                            sendStartOrCompleteMessage(DownloadFlag.COMPLETED, id);
                         }
                     }
-                    if (mDownloadDao.isPaused(downloadUrl))
-                        sendPauseOrWaitingMessage(DownloadFlag.PAUSED, downloadUrl);
+                    if (mDownloadDao.isPaused(id))
+                        sendPauseOrWaitingMessage(DownloadFlag.PAUSED, id);
                 } else {
-                    mDownloadDao.updateStatus(downloadUrl, DownloadFlag.FAILED);
-                    sendFailureMessage(conn.getResponseCode(), downloadUrl);
+                    mDownloadDao.updateStatus(id, DownloadFlag.FAILED);
+                    sendFailureMessage(conn.getResponseCode(), id);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                mDownloadDao.updateStatus(downloadUrl, DownloadFlag.ERROR);
-                sendErrorMessage(e, downloadUrl);
+                mDownloadDao.updateStatus(id, DownloadFlag.ERROR);
+                sendErrorMessage(e, id);
             } finally {
                 try {
                     if (currentPart != null)
@@ -497,54 +484,54 @@ public class DownloadService extends Service implements Handler.Callback {
                         conn.disconnect();
                 } catch (IOException e) {
                     e.printStackTrace();
-                    mDownloadDao.updateStatus(downloadUrl, DownloadFlag.ERROR);
-                    sendErrorMessage(e, downloadUrl);
+                    mDownloadDao.updateStatus(id, DownloadFlag.ERROR);
+                    sendErrorMessage(e, id);
                 }
 
             }
         }
     }
 
-    private void sendStartOrCompleteMessage(@DownloadFlag int status, String downloadUrl) {
-        sendNormalMessage(status, downloadUrl);
+    private void sendStartOrCompleteMessage(@DownloadFlag int status, String id) {
+        sendNormalMessage(status, id);
     }
 
-    private void sendPauseOrWaitingMessage(@DownloadFlag int status, String downloadUrl) {
-        sendNormalMessage(status, downloadUrl);
+    private void sendPauseOrWaitingMessage(@DownloadFlag int status, String id) {
+        sendNormalMessage(status, id);
     }
 
-    private void sendDeleteMessage(@DownloadFlag int status, String downloadUrl) {
-        sendNormalMessage(status, downloadUrl);
+    private void sendDeleteMessage(@DownloadFlag int status, String id) {
+        sendNormalMessage(status, id);
     }
 
-    private void sendNormalMessage(@DownloadFlag int status, String downloadUrl) {
+    private void sendNormalMessage(@DownloadFlag int status, String id) {
         Message message = new Message();
-        message.setData(getBundle(downloadUrl));
+        message.setData(getBundle(id));
         message.what = status;
         sendMessage(message);
     }
 
-    private void sendProgressMessage(DownloadStatus status, String downloadUrl) {
+    private void sendProgressMessage(DownloadStatus status, String id) {
         Message message = new Message();
         message.what = DownloadFlag.PROGRESS;
         message.obj = status;
-        message.setData(getBundle(downloadUrl));
+        message.setData(getBundle(id));
         sendMessage(message);
     }
 
-    private void sendFailureMessage(int code, String downloadUrl) {
+    private void sendFailureMessage(int code, String id) {
         Message message = new Message();
         message.what = DownloadFlag.FAILED;
         message.obj = code;
-        message.setData(getBundle(downloadUrl));
+        message.setData(getBundle(id));
         sendMessage(message);
     }
 
-    private void sendErrorMessage(Exception e, String downloadUrl) {
+    private void sendErrorMessage(Exception e, String id) {
         Message message = new Message();
         message.what = DownloadFlag.ERROR;
         message.obj = e;
-        message.setData(getBundle(downloadUrl));
+        message.setData(getBundle(id));
         sendMessage(message);
     }
 
@@ -554,9 +541,9 @@ public class DownloadService extends Service implements Handler.Callback {
         }
     }
 
-    private Bundle getBundle(String downloadUrl) {
+    private Bundle getBundle(String id) {
         Bundle bundle = new Bundle();
-        bundle.putString(DownloadExtra.EXTRA_URL, downloadUrl);
+        bundle.putString(DownloadExtra.EXTRA_ID, id);
         return bundle;
     }
 
@@ -570,70 +557,70 @@ public class DownloadService extends Service implements Handler.Callback {
             }
         }
         if (mIsPauseAllListener != null) mIsPauseAllListener.isPauseAll(isPauseAll);
-        DownLoadListener downLoadListener = mDownLoadListeners.get(msg.getData().getString(DownloadExtra.EXTRA_URL));
+        DownLoadListener downLoadListener = mDownLoadListeners.get(msg.getData().getString(DownloadExtra.EXTRA_ID));
         switch (msg.what) {
             case DownloadFlag.NORMAL:
                 if (downLoadListener != null) {
-                    Cog.d(TAG, "Download Start " + msg.getData().getString(DownloadExtra.EXTRA_URL));
+                    Cog.d(TAG, "Download Start " + msg.getData().getString(DownloadExtra.EXTRA_ID));
                     downLoadListener.onStart();
                 }
                 break;
             case DownloadFlag.WAITING:
                 if (downLoadListener != null) {
-                    Cog.d(TAG, "Download Waiting" + msg.getData().getString(DownloadExtra.EXTRA_URL));
+                    Cog.d(TAG, "Download Waiting" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                     downLoadListener.onWaiting();
                 }
                 break;
             case DownloadFlag.PROGRESS:
                 if (downLoadListener != null) {
-                    Cog.d(TAG, "Download Progress " + ((DownloadStatus) msg.obj).getPercent() + " url:" + msg.getData().getString(DownloadExtra.EXTRA_URL));
+                    Cog.d(TAG, "Download Progress " + ((DownloadStatus) msg.obj).getPercent() + " url:" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                     downLoadListener.onProgress((DownloadStatus) msg.obj);
                 }
                 break;
             case DownloadFlag.PAUSED:
                 if (downLoadListener != null) {
-                    Cog.d(TAG, "Download Pause" + msg.getData().getString(DownloadExtra.EXTRA_URL));
+                    Cog.d(TAG, "Download Pause" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                     downLoadListener.onPause();
                 }
                 break;
             case DownloadFlag.COMPLETED:
                 if (downLoadListener != null) {
-                    Cog.d(TAG, "Download Complete" + msg.getData().getString(DownloadExtra.EXTRA_URL));
+                    Cog.d(TAG, "Download Complete" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                     downLoadListener.onComplete();
                 }
                 if (mRateListener != null) {
-                    DownloadEntity downloadEntity = mDownloadDao.query(msg.getData().getString(DownloadExtra.EXTRA_URL));
+                    DownloadEntity downloadEntity = mDownloadDao.query(msg.getData().getString(DownloadExtra.EXTRA_ID));
                     if (downloadEntity != null)
                         mRateListener.onComplete(downloadEntity);
                 }
-                if (mDownLoadListeners.containsKey(msg.getData().getString(DownloadExtra.EXTRA_URL))) {
-                    mDownLoadListeners.remove(msg.getData().getString(DownloadExtra.EXTRA_URL));
+                if (mDownLoadListeners.containsKey(msg.getData().getString(DownloadExtra.EXTRA_ID))) {
+                    mDownLoadListeners.remove(msg.getData().getString(DownloadExtra.EXTRA_ID));
                 }
-                if (mDownThreadMap.containsKey(msg.getData().getString(DownloadExtra.EXTRA_URL))) {
-                    mDownThreadMap.remove(msg.getData().getString(DownloadExtra.EXTRA_URL));
+                if (mDownThreadMap.containsKey(msg.getData().getString(DownloadExtra.EXTRA_ID))) {
+                    mDownThreadMap.remove(msg.getData().getString(DownloadExtra.EXTRA_ID));
                 }
                 break;
             case DownloadFlag.FAILED:
                 if (downLoadListener != null) {
-                    Cog.e(TAG, "Download Failure" + msg.getData().getString(DownloadExtra.EXTRA_URL));
+                    Cog.e(TAG, "Download Failure" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                     downLoadListener.onFailure((Integer) msg.obj);
                 }
                 break;
             case DownloadFlag.ERROR:
                 if (downLoadListener != null) {
-                    Cog.e(TAG, "Download Error" + msg.getData().getString(DownloadExtra.EXTRA_URL));
+                    Cog.e(TAG, "Download Error" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                     downLoadListener.onError((Exception) msg.obj);
                 }
                 break;
             case DownloadFlag.DELETED:
                 if (downLoadListener != null) {
-                    Cog.d(TAG, "Download Deleted" + msg.getData().getString(DownloadExtra.EXTRA_URL));
+                    Cog.d(TAG, "Download Deleted" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                     downLoadListener.onDelete();
                 }
                 break;
             case DownloadFlag.RATING:
                 if (mRateListener != null) {
-//                    Cog.d(TAG, "Download Rating" + msg.getData().getString(DownloadExtra.EXTRA_URL) + msg.getData().getString(DownloadExtra.EXTRA_RATE) + msg.getData().getInt(DownloadExtra.EXTRA_COUNT, 0));
+//                    Cog.d(TAG, "Download Rating" + msg.getData().getString(DownloadExtra.EXTRA_ID) + msg.getData().getString(DownloadExtra.EXTRA_RATE) + msg.getData().getInt(DownloadExtra.EXTRA_COUNT, 0));
                     mRateListener.onRate(msg.getData().getString(DownloadExtra.EXTRA_RATE), msg.getData().getInt(DownloadExtra.EXTRA_COUNT, 0));
                 }
                 break;

@@ -12,13 +12,15 @@ import java.lang.annotation.RetentionPolicy;
 public @interface DownloadTable {
     /*表名称*/
     String TABLE_NAME = "download";
+    /*下载资源id,如果为空,则使用url地址存储*/
+    String COLUMN_NAME_ID="id";
     /*断点续传当前下载位置*/
     String COLUMN_NAME_CURRENT_POSITION = "current";
     /*文件总共大小*/
     String COLUMN_NAME_TOTAL_SIZE = "total";
     /*下载地址*/
     String COLUMN_NAME_DOWNLOAD_URL = "url";
-    /*本地下载路径*/
+    /*ID本地下载路径*/
     String COLUMN_NAME_SAVE_PATH = "path";
     /*下载标题名称*/
     String COLUMN_NAME_TITLE = "title";

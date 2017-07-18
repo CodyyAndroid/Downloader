@@ -35,9 +35,9 @@ public class DownloadDaoImpl implements DownloadDao {
     }
 
     @Override
-    public synchronized boolean isExist(String url) {
-        String selection = DownloadTable.COLUMN_NAME_DOWNLOAD_URL + DBSelection.SELECTION_EQUAL;
-        String[] selectionArgs = {url};
+    public synchronized boolean isExist(String id) {
+        String selection = DownloadTable.COLUMN_NAME_ID + DBSelection.SELECTION_EQUAL;
+        String[] selectionArgs = {id};
         Cursor cursor = mDbHelper.getReadableDatabase().query(
                 DownloadTable.TABLE_NAME,
                 getProjection(),
@@ -51,7 +51,7 @@ public class DownloadDaoImpl implements DownloadDao {
         if (count > 0) {//如果数据库存在记录,但是文件已被删除,则从数据库删除记录
             cursor.moveToFirst();
             if (!new File(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_SAVE_PATH))).exists() && Long.parseLong(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_TOTAL_SIZE))) > 0) {
-                delete(url);
+                delete(id);
                 count = 0;
             }
         }
@@ -60,10 +60,10 @@ public class DownloadDaoImpl implements DownloadDao {
     }
 
     @Override
-    public synchronized boolean isPaused(String url) {
+    public synchronized boolean isPaused(String id) {
         boolean isPaused = false;
-        String selection = DownloadTable.COLUMN_NAME_DOWNLOAD_URL + DBSelection.SELECTION_EQUAL;
-        String[] selectionArgs = {url};
+        String selection = DownloadTable.COLUMN_NAME_ID + DBSelection.SELECTION_EQUAL;
+        String[] selectionArgs = {id};
         Cursor cursor = mDbHelper.getReadableDatabase().query(
                 DownloadTable.TABLE_NAME,
                 getProjection(),
@@ -87,7 +87,9 @@ public class DownloadDaoImpl implements DownloadDao {
         SQLiteDatabase database = mDbHelper.getWritableDatabase();
         database.beginTransaction();
         try {
-            String sql = "insert into " + DownloadTable.TABLE_NAME + " (" + DownloadTable.COLUMN_NAME_DOWNLOAD_URL
+            String sql = "insert into " + DownloadTable.TABLE_NAME + " ("
+                    + DownloadTable.COLUMN_NAME_ID
+                    + "," + DownloadTable.COLUMN_NAME_DOWNLOAD_URL
                     + "," + DownloadTable.COLUMN_NAME_CURRENT_POSITION
                     + "," + DownloadTable.COLUMN_NAME_TOTAL_SIZE
                     + "," + DownloadTable.COLUMN_NAME_SAVE_PATH
@@ -97,8 +99,8 @@ public class DownloadDaoImpl implements DownloadDao {
                     + "," + DownloadTable.COLUMN_NAME_DOWNLOAD_TIME
                     + "," + DownloadTable.COLUMN_NAME_EXTRA1
                     + "," + DownloadTable.COLUMN_NAME_EXTRA2
-                    + ") values(?,?,?,?,?,?,?,?,?,?)";
-            Object[] bindArgs = {entry.getUrl(), entry.getCurrent(), entry.getTotal(), entry.getSavePath(), entry.getName(), entry.getStatus(), entry.getThumbnails(), entry.getTime(), entry.getExtra1(), entry.getExtra2()};
+                    + ") values(?,?,?,?,?,?,?,?,?,?,?)";
+            Object[] bindArgs = {entry.getId(),entry.getUrl(), entry.getCurrent(), entry.getTotal(), entry.getSavePath(), entry.getName(), entry.getStatus(), entry.getThumbnails(), entry.getTime(), entry.getExtra1(), entry.getExtra2()};
             database.execSQL(sql, bindArgs);
             database.setTransactionSuccessful();
         } catch (Exception e) {
@@ -121,14 +123,14 @@ public class DownloadDaoImpl implements DownloadDao {
     }
 
     @Override
-    public synchronized boolean updateProgress(String url, long downloadSize, long totalSize, @DownloadFlag int status) {
+    public synchronized boolean updateProgress(String id, long downloadSize, long totalSize, @DownloadFlag int status) {
         SQLiteDatabase database = mDbHelper.getWritableDatabase();
         database.beginTransaction();
         try {
             String sql = "update " + DownloadTable.TABLE_NAME + " set " + DownloadTable.COLUMN_NAME_CURRENT_POSITION
                     + "=?," + DownloadTable.COLUMN_NAME_TOTAL_SIZE
-                    + "=?," + DownloadTable.COLUMN_NAME_STATUS + "=? where " + DownloadTable.COLUMN_NAME_DOWNLOAD_URL + DBSelection.SELECTION_EQUAL;
-            Object[] bindArgs = {downloadSize, totalSize, status, url};
+                    + "=?," + DownloadTable.COLUMN_NAME_STATUS + "=? where " + DownloadTable.COLUMN_NAME_ID + DBSelection.SELECTION_EQUAL;
+            Object[] bindArgs = {downloadSize, totalSize, status, id};
             database.execSQL(sql, bindArgs);
             database.setTransactionSuccessful();
         } catch (SQLException e) {
@@ -154,12 +156,12 @@ public class DownloadDaoImpl implements DownloadDao {
     }
 
     @Override
-    public synchronized boolean updateStatus(String url, @DownloadFlag int status) {
+    public synchronized boolean updateStatus(String id, @DownloadFlag int status) {
         SQLiteDatabase database = mDbHelper.getWritableDatabase();
         database.beginTransaction();
         try {
-            String sql = "update " + DownloadTable.TABLE_NAME + " set " + DownloadTable.COLUMN_NAME_STATUS + "=? where " + DownloadTable.COLUMN_NAME_DOWNLOAD_URL + DBSelection.SELECTION_EQUAL;
-            Object[] bindArgs = {status, url};
+            String sql = "update " + DownloadTable.TABLE_NAME + " set " + DownloadTable.COLUMN_NAME_STATUS + "=? where " + DownloadTable.COLUMN_NAME_ID + DBSelection.SELECTION_EQUAL;
+            Object[] bindArgs = {status, id};
             database.execSQL(sql, bindArgs);
             database.setTransactionSuccessful();
         } catch (SQLException e) {
@@ -183,12 +185,12 @@ public class DownloadDaoImpl implements DownloadDao {
     }
 
     @Override
-    public synchronized void updatePath(String url, String savePath) {
+    public synchronized void updatePath(String id, String savePath) {
         SQLiteDatabase database = mDbHelper.getWritableDatabase();
         database.beginTransaction();
         try {
-            String sql = "update " + DownloadTable.TABLE_NAME + " set " + DownloadTable.COLUMN_NAME_SAVE_PATH + "=? where " + DownloadTable.COLUMN_NAME_DOWNLOAD_URL + DBSelection.SELECTION_EQUAL;
-            Object[] bindArgs = {savePath, url};
+            String sql = "update " + DownloadTable.TABLE_NAME + " set " + DownloadTable.COLUMN_NAME_SAVE_PATH + "=? where " + DownloadTable.COLUMN_NAME_ID + DBSelection.SELECTION_EQUAL;
+            Object[] bindArgs = {savePath, id};
             database.execSQL(sql, bindArgs);
             database.setTransactionSuccessful();
         } catch (SQLException e) {
@@ -199,9 +201,9 @@ public class DownloadDaoImpl implements DownloadDao {
     }
 
     @Override
-    public synchronized boolean delete(String url, boolean isRetained) {
+    public synchronized boolean delete(String id, boolean isRetained) {
         if (!isRetained) {
-            DownloadEntity entity = query(url);
+            DownloadEntity entity = query(id);
             if (entity != null && entity.getSavePath() != null) {
                 File file = new File(entity.getSavePath());
                 if (file.exists()) {
@@ -210,19 +212,19 @@ public class DownloadDaoImpl implements DownloadDao {
             }
         }
         // Define 'where' part of queryAll.
-        String selection = DownloadTable.COLUMN_NAME_DOWNLOAD_URL + DBSelection.SELECTION_EQUAL;
+        String selection = DownloadTable.COLUMN_NAME_ID + DBSelection.SELECTION_EQUAL;
         // Specify arguments in placeholder order.
-        String[] selectionArgs = {url};
+        String[] selectionArgs = {id};
         // Issue SQL statement.
         return mDbHelper.getWritableDatabase().delete(DownloadTable.TABLE_NAME, selection, selectionArgs) > 0;
 
     }
 
-    private synchronized void delete(String url) {
+    private synchronized void delete(String id) {
         // Define 'where' part of queryAll.
-        String selection = DownloadTable.COLUMN_NAME_DOWNLOAD_URL + DBSelection.SELECTION_EQUAL;
+        String selection = DownloadTable.COLUMN_NAME_ID + DBSelection.SELECTION_EQUAL;
         // Specify arguments in placeholder order.
-        String[] selectionArgs = {url};
+        String[] selectionArgs = {id};
         // Issue SQL statement.
         mDbHelper.getWritableDatabase().delete(DownloadTable.TABLE_NAME, selection, selectionArgs);
     }
@@ -242,10 +244,10 @@ public class DownloadDaoImpl implements DownloadDao {
     }
 
     @Override
-    public DownloadEntity query(String url) {
+    public DownloadEntity query(String id) {
         DownloadEntity entity = null;
-        String selection = DownloadTable.COLUMN_NAME_DOWNLOAD_URL + DBSelection.SELECTION_EQUAL;
-        String[] selectionArgs = {url};
+        String selection = DownloadTable.COLUMN_NAME_ID + DBSelection.SELECTION_EQUAL;
+        String[] selectionArgs = {id};
         Cursor cursor = mDbHelper.getReadableDatabase().query(
                 DownloadTable.TABLE_NAME,
                 getProjection(),
@@ -315,6 +317,7 @@ public class DownloadDaoImpl implements DownloadDao {
     @NonNull
     private DownloadEntity getDownloadEntity(Cursor cursor) {
         return new DownloadEntity(
+                cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_ID)),
                 Long.parseLong(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_CURRENT_POSITION))),
                 Long.parseLong(cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_TOTAL_SIZE))),
                 cursor.getString(cursor.getColumnIndexOrThrow(DownloadTable.COLUMN_NAME_DOWNLOAD_URL)),
@@ -331,6 +334,7 @@ public class DownloadDaoImpl implements DownloadDao {
     @NonNull
     private String[] getProjection() {
         return new String[]{
+                DownloadTable.COLUMN_NAME_ID,
                 DownloadTable.COLUMN_NAME_DOWNLOAD_URL,
                 DownloadTable.COLUMN_NAME_CURRENT_POSITION,
                 DownloadTable.COLUMN_NAME_TOTAL_SIZE,

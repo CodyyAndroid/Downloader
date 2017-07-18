@@ -13,12 +13,12 @@ public interface DownloadDao {
     /**
      * 检查本地下载记录,是否下载过
      */
-    boolean isExist(String url);
+    boolean isExist(String id);
 
     /**
      * 检查本地数据是否暂停下载状态
      */
-    boolean isPaused(String url);
+    boolean isPaused(String id);
 
     /**
      * 保存下载的具体信息
@@ -28,9 +28,9 @@ public interface DownloadDao {
     boolean save(DownloadEntity entry);
 
     /**
-     * 根据url查询具体下载信息
+     * 根据id查询具体下载信息
      */
-    DownloadEntity query(String url);
+    DownloadEntity query(String id);
 
     /**
      * 查询所有下载集合
@@ -45,22 +45,22 @@ public interface DownloadDao {
     /**
      * 更新下载状态
      */
-    boolean updateProgress(String url, long downloadSize, long totalSize, @DownloadFlag int status);
+    boolean updateProgress(String id, long downloadSize, long totalSize, @DownloadFlag int status);
 
     /**
      * 更新下载状态
      */
-    boolean updateStatus(String url, @DownloadFlag int status);
+    boolean updateStatus(String id, @DownloadFlag int status);
 
     /**
      * 更新保存路径
      */
-    void updatePath(String url, String savePath);
+    void updatePath(String id, String savePath);
 
     /**
      * 删除下载记录
      */
-    boolean delete(String url, boolean isRetained);
+    boolean delete(String id, boolean isRetained);
 
     /**
      * 删除所有下载记录
