@@ -1,10 +1,14 @@
 package com.codyy.downloader;
 
+import android.app.ActivityManager;
+import android.content.Context;
 import android.os.Bundle;
+import android.os.StatFs;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.format.Formatter;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -69,8 +73,86 @@ public class MultiDownloadActivity extends AppCompatActivity {
         recyclerView.setAdapter(new FileAdapter(mFileEntities));
 //        Downloader.getInstance(getApplicationContext()).download(getString(R.string.url_apk_file));
 //        Downloader.getInstance(getApplicationContext()).download(getString(R.string.url_small_file));
-    }
+        mEditText.setText(Formatter.formatFileSize(getBaseContext(), getAvailableStore(getExternalStoragePath()))+"/"+Formatter.formatFileSize(getBaseContext(), getTotalStore(getExternalStoragePath())));
 
+    }
+    // 获取SD卡路径
+    public static String getExternalStoragePath() {
+        // 获取SdCard状态
+        String state = android.os.Environment.getExternalStorageState();
+
+        // 判断SdCard是否存在并且是可用的
+
+        if (android.os.Environment.MEDIA_MOUNTED.equals(state)) {
+
+            if (android.os.Environment.getExternalStorageDirectory().canWrite()) {
+
+                return android.os.Environment.getExternalStorageDirectory()
+                        .getPath();
+
+            }
+
+        }
+
+        return null;
+
+    }
+    private String getAvailMemory() {// 获取android当前可用内存大小
+
+        ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
+        am.getMemoryInfo(mi);
+        //mi.availMem; 当前系统的可用内存
+
+        return Formatter.formatFileSize(getBaseContext(), mi.availMem);// 将获取的内存大小规格化
+    }
+    public static long getAvailableStore(String filePath) {
+
+        // 取得sdcard文件路径
+
+        StatFs statFs = new StatFs(filePath);
+
+        // 获取block的SIZE
+
+        long blocSize = statFs.getBlockSize();
+
+        // 获取BLOCK数量
+
+        // long totalBlocks = statFs.getBlockCount();
+
+        // 可使用的Block的数量
+
+        long availaBlock = statFs.getAvailableBlocks();
+
+        // long total = totalBlocks * blocSize;
+
+        long availableSpare = availaBlock * blocSize;
+
+        return availableSpare;
+
+    }
+    public static long getTotalStore(String filePath) {
+
+        // 取得sdcard文件路径
+
+        StatFs statFs = new StatFs(filePath);
+
+        // 获取block的SIZE
+
+        long blocSize = statFs.getBlockSize();
+
+        // 获取BLOCK数量
+
+         long totalBlocks = statFs.getBlockCount();
+
+        // 可使用的Block的数量
+
+         long total = totalBlocks * blocSize;
+
+
+        return total;
+
+    }
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         /*if (keyCode == KeyEvent.KEYCODE_DEL) {
