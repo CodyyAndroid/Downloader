@@ -573,7 +573,7 @@ public class DownloadService extends Service implements Handler.Callback {
                 break;
             case DownloadFlag.PROGRESS:
                 if (downLoadListener != null) {
-                    Cog.d(TAG, "Download Progress " + ((DownloadStatus) msg.obj).getPercent() + " url:" + msg.getData().getString(DownloadExtra.EXTRA_ID));
+                    Cog.d(TAG, "Download Progress " + ((DownloadStatus) msg.obj).getPercent() + " id:" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                     downLoadListener.onProgress((DownloadStatus) msg.obj);
                 }
                 break;
