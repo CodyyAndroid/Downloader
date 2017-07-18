@@ -196,7 +196,8 @@ public class DownloadEntity implements Serializable {
     @Override
     public String toString() {
         return "DownloadEntity{" +
-                "current=" + current +
+                "id='" + id + '\'' +
+                ", current=" + current +
                 ", total=" + total +
                 ", url='" + url + '\'' +
                 ", savePath='" + savePath + '\'' +
