@@ -313,6 +313,9 @@ public class DownloadService extends Service implements Handler.Callback {
             sendPauseOrWaitingMessage(DownloadFlag.PAUSED, key);
         }
         mDownThreadMap.clear();
+        for (DownloadEntity entity : mDownloadDao.queryDoingOn()) {
+            mDownloadDao.updateStatus(entity.getId(), DownloadFlag.PAUSED);
+        }
     }
 
     /**
@@ -325,6 +328,7 @@ public class DownloadService extends Service implements Handler.Callback {
             if (mDownThreadMap.containsKey(id)) {
                 mDownThreadMap.get(id).pause();
                 mDownThreadMap.remove(id);
+                mDownloadDao.updateStatus(id, DownloadFlag.PAUSED);
                 sendPauseOrWaitingMessage(DownloadFlag.PAUSED, id);
             }
         }
