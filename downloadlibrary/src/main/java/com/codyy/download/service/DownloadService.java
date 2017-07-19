@@ -123,6 +123,12 @@ public class DownloadService extends Service implements Handler.Callback {
         }
     }
 
+    /**
+     * 同步下载记录
+     */
+    public boolean syncDownloadRecord(@NonNull DownloadEntity entity) {
+        return !mDownloadDao.isExist(entity.getId()) && mDownloadDao.save(new DownloadEntity(TextUtils.isEmpty(entity.getId()) ? entity.getUrl() : entity.getId(), entity.getCurrent(), entity.getTotal(), entity.getUrl(), entity.getSavePath(), TextUtils.isEmpty(entity.getName()) ? entity.getUrl().substring(entity.getUrl().lastIndexOf(File.separator) + 1) : entity.getName(), DownloadFlag.COMPLETED, TextUtils.isEmpty(entity.getThumbnails()) ? "" : entity.getThumbnails(), entity.getTime() == 0 ? System.currentTimeMillis() : entity.getTime(), entity.getExtra1(), entity.getExtra2()));
+    }
 
     public void download(@NonNull DownloadEntity entity) {
         String target = getSavePath(entity.getUrl(), entity.getSavePath());

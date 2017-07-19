@@ -25,14 +25,14 @@ import java.util.Map;
  * 文件下载器
  * Created by lijian on 2017/6/7.
  *
- * @version 1.0.3
+ * @version 1.1.0
  */
 
 public class Downloader {
     /**
      * 存储空间不足action
      */
-    public static final String ACTION_DOWNLOAD_OUT_OF_MEMORY="action.download.out.of.memory";
+    public static final String ACTION_DOWNLOAD_OUT_OF_MEMORY = "action.download.out.of.memory";
     @SuppressLint("StaticFieldLeak")
     private static volatile Downloader INSTANCE;
     /**
@@ -131,6 +131,15 @@ public class Downloader {
     }
 
     /**
+     * 同步已下载的记录
+     * @param entity 下载记录
+     * @return true:同步成功;false:服务未启动或同步失败
+     */
+    public boolean syncDownloadRecord(@NonNull DownloadEntity entity) {
+        return mDownloadService != null && mDownloadService.syncDownloadRecord(entity);
+    }
+
+    /**
      * 设置wifi状态是否自动下载
      *
      * @param wifiDownload 默认为true
@@ -178,7 +187,7 @@ public class Downloader {
         if (mDownloadService != null) {
             mDownloadService.download(entity);
         } else {
-            mDownTasks.put(TextUtils.isEmpty(entity.getId())?entity.getUrl():entity.getId(), entity);
+            mDownTasks.put(TextUtils.isEmpty(entity.getId()) ? entity.getUrl() : entity.getId(), entity);
         }
     }
 
@@ -265,7 +274,7 @@ public class Downloader {
     /**
      * 接收下载状态
      *
-     * @param id  下载地址
+     * @param id           下载地址
      * @param loadListener 状态监听
      */
     public void receiveDownloadStatus(@NonNull String id, @NonNull DownLoadListener loadListener) {
