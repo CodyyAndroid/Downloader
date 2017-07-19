@@ -9,84 +9,52 @@ import java.io.Serializable;
  */
 
 public class DownloadEntity implements Serializable {
+    /**
+     * 文件资源id
+     */
     private String id;
+    /**
+     * 文件已下载大小
+     */
     private long current;
+    /**
+     * 文件总大小
+     */
     private long total;
+    /**
+     * 文件下载地址
+     */
     private String url;
+    /**
+     * 文件下载后保存路径,默认为Download
+     */
     private String savePath;
+    /**
+     * 文件名或标题名
+     */
     private String name;
+    /**
+     * 文件当前下载状态
+     */
     private int status;
+    /**
+     * 文件缩略图地址
+     */
     private String thumbnails;
+    /**
+     * 文件下载日期(时间戳)
+     */
     private long time;
+    /**
+     * 额外信息
+     */
     private String extra1;
+    /**
+     * 额外信息
+     */
     private String extra2;
 
     public DownloadEntity() {
-    }
-
-    public DownloadEntity(long current, long total, String url, String savePath, String name, int status) {
-        this.current = current;
-        this.total = total;
-        this.url = url;
-        this.savePath = savePath;
-        this.name = name;
-        this.status = status;
-    }
-
-    public DownloadEntity(long current, long total, String url, String savePath, String name, int status, long time) {
-        this.current = current;
-        this.total = total;
-        this.url = url;
-        this.savePath = savePath;
-        this.name = name;
-        this.status = status;
-        this.time = time;
-    }
-
-    public DownloadEntity(long current, long total, String url, String savePath, String name, int status, String thumbnails) {
-        this.current = current;
-        this.total = total;
-        this.url = url;
-        this.savePath = savePath;
-        this.name = name;
-        this.status = status;
-        this.thumbnails = thumbnails;
-    }
-
-    public DownloadEntity(long current, long total, String url, String savePath, String name, int status, String thumbnails, long time) {
-        this.current = current;
-        this.total = total;
-        this.url = url;
-        this.savePath = savePath;
-        this.name = name;
-        this.status = status;
-        this.thumbnails = thumbnails;
-        this.time = time;
-    }
-
-    public DownloadEntity(long current, long total, String url, String savePath, String name, int status, String thumbnails, long time, String extra1) {
-        this.current = current;
-        this.total = total;
-        this.url = url;
-        this.savePath = savePath;
-        this.name = name;
-        this.status = status;
-        this.thumbnails = thumbnails;
-        this.time = time;
-        this.extra1 = extra1;
-    }
-
-    public DownloadEntity(long current, long total, String url, String savePath, String name, int status, String thumbnails, long time, String extra1, String extra2) {
-        this.current = current;
-        this.total = total;
-        this.url = url;
-        this.savePath = savePath;
-        this.name = name;
-        this.status = status;
-        this.thumbnails = thumbnails;
-        this.time = time;
-        this.extra1 = extra1;
-        this.extra2 = extra2;
     }
 
     public DownloadEntity(String id, long current, long total, String url, String savePath, String name, int status, String thumbnails, long time, String extra1, String extra2) {
