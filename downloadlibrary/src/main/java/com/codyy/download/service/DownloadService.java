@@ -450,6 +450,11 @@ public class DownloadService extends Service implements Handler.Callback {
                     savePath = savePath.replace(".do", filename);
                     mDownloadDao.updatePath(id, savePath);
                 }
+                if (totalSize > getAvailableStore()) {
+                    Cog.e(TAG,"存储空间不足,total="+totalSize+" availableStore="+getAvailableStore());
+                    LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(new Intent(Downloader.ACTION_DOWNLOAD_OUT_OF_MEMORY));
+                    throw new IOException("存储空间不足");
+                }
                 currentPart = new RandomAccessFile(savePath, DownloadExtra.RANDOM_ACCESS_FILE_MODE);
                 currentPart.setLength(totalSize);
                 currentPart.close();
@@ -460,10 +465,6 @@ public class DownloadService extends Service implements Handler.Callback {
                     inStream = conn.getInputStream();
                     byte[] buffer = new byte[4096];
                     int hasRead;
-                    if (totalSize > getAvailableStore()) {
-                        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(new Intent(Downloader.ACTION_DOWNLOAD_OUT_OF_MEMORY));
-                        pause();
-                    }
                     while (!mDownloadDao.isPaused(id) && length < totalSize && (hasRead = inStream.read(buffer)) != -1) {
                         currentPart.write(buffer, 0, hasRead);
                         length += hasRead;
