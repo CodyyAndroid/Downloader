@@ -454,16 +454,16 @@ public class DownloadService extends Service implements Handler.Callback {
                 currentPart.setLength(totalSize);
                 currentPart.close();
                 if (conn.getResponseCode() == 206) {
-                    if (totalSize > getAvailableStore()) {
-                        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(new Intent(Downloader.ACTION_DOWNLOAD_OUT_OF_MEMORY));
-                    }
-                    pause();
                     currentPart = new RandomAccessFile(savePath, DownloadExtra.RANDOM_ACCESS_FILE_MODE);
                     currentPart.seek(range);
                     sendStartOrCompleteMessage(DownloadFlag.NORMAL, id);
                     inStream = conn.getInputStream();
                     byte[] buffer = new byte[4096];
                     int hasRead;
+                    if (totalSize > getAvailableStore()) {
+                        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(new Intent(Downloader.ACTION_DOWNLOAD_OUT_OF_MEMORY));
+                        pause();
+                    }
                     while (!mDownloadDao.isPaused(id) && length < totalSize && (hasRead = inStream.read(buffer)) != -1) {
                         currentPart.write(buffer, 0, hasRead);
                         length += hasRead;
