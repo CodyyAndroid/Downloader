@@ -454,37 +454,38 @@ public class DownloadService extends Service implements Handler.Callback {
                     Cog.e(TAG,"存储空间不足,total="+totalSize+" availableStore="+getAvailableStore());
                     LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(new Intent(Downloader.ACTION_DOWNLOAD_OUT_OF_MEMORY));
                     throw new IOException("存储空间不足");
-                }
-                currentPart = new RandomAccessFile(savePath, DownloadExtra.RANDOM_ACCESS_FILE_MODE);
-                currentPart.setLength(totalSize);
-                currentPart.close();
-                if (conn.getResponseCode() == 206) {
+                }else {
                     currentPart = new RandomAccessFile(savePath, DownloadExtra.RANDOM_ACCESS_FILE_MODE);
-                    currentPart.seek(range);
-                    sendStartOrCompleteMessage(DownloadFlag.NORMAL, id);
-                    inStream = conn.getInputStream();
-                    byte[] buffer = new byte[4096];
-                    int hasRead;
-                    while (!mDownloadDao.isPaused(id) && length < totalSize && (hasRead = inStream.read(buffer)) != -1) {
-                        currentPart.write(buffer, 0, hasRead);
-                        length += hasRead;
-                        if (mRateListener != null) {
-                            sRates += hasRead;
-                        } else {
-                            sRates = 0;
+                    currentPart.setLength(totalSize);
+                    currentPart.close();
+                    if (conn.getResponseCode() == 206) {
+                        currentPart = new RandomAccessFile(savePath, DownloadExtra.RANDOM_ACCESS_FILE_MODE);
+                        currentPart.seek(range);
+                        sendStartOrCompleteMessage(DownloadFlag.NORMAL, id);
+                        inStream = conn.getInputStream();
+                        byte[] buffer = new byte[4096];
+                        int hasRead;
+                        while (!mDownloadDao.isPaused(id) && length < totalSize && (hasRead = inStream.read(buffer)) != -1) {
+                            currentPart.write(buffer, 0, hasRead);
+                            length += hasRead;
+                            if (mRateListener != null) {
+                                sRates += hasRead;
+                            } else {
+                                sRates = 0;
+                            }
+                            mDownloadStatus = range == 0 ? new DownloadStatus(length, totalSize) : new DownloadStatus((length + mDownloadEntity.getCurrent()), totalSize);
+                            sendProgressMessage(mDownloadStatus, id);
+                            if (mDownloadStatus.getPercentNumber() >= 100 && mHandler != null) {
+                                mDownloadDao.updateProgress(id, mDownloadStatus.getDownloadSize(), mDownloadStatus.getTotalSize(), DownloadFlag.COMPLETED);
+                                sendStartOrCompleteMessage(DownloadFlag.COMPLETED, id);
+                            }
                         }
-                        mDownloadStatus = range == 0 ? new DownloadStatus(length, totalSize) : new DownloadStatus((length + mDownloadEntity.getCurrent()), totalSize);
-                        sendProgressMessage(mDownloadStatus, id);
-                        if (mDownloadStatus.getPercentNumber() >= 100 && mHandler != null) {
-                            mDownloadDao.updateProgress(id, mDownloadStatus.getDownloadSize(), mDownloadStatus.getTotalSize(), DownloadFlag.COMPLETED);
-                            sendStartOrCompleteMessage(DownloadFlag.COMPLETED, id);
-                        }
+                        if (mDownloadDao.isPaused(id))
+                            sendPauseOrWaitingMessage(DownloadFlag.PAUSED, id);
+                    } else {
+                        mDownloadDao.updateStatus(id, DownloadFlag.FAILED);
+                        sendFailureMessage(conn.getResponseCode(), id);
                     }
-                    if (mDownloadDao.isPaused(id))
-                        sendPauseOrWaitingMessage(DownloadFlag.PAUSED, id);
-                } else {
-                    mDownloadDao.updateStatus(id, DownloadFlag.FAILED);
-                    sendFailureMessage(conn.getResponseCode(), id);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
