@@ -451,10 +451,10 @@ public class DownloadService extends Service implements Handler.Callback {
                     mDownloadDao.updatePath(id, savePath);
                 }
                 if (totalSize > getAvailableStore()) {
-                    Cog.e(TAG,"存储空间不足,total="+totalSize+" availableStore="+getAvailableStore());
+                    Cog.e(TAG, "存储空间不足,total=" + totalSize + " availableStore=" + getAvailableStore());
                     LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(new Intent(Downloader.ACTION_DOWNLOAD_OUT_OF_MEMORY));
                     throw new IOException("存储空间不足");
-                }else {
+                } else {
                     currentPart = new RandomAccessFile(savePath, DownloadExtra.RANDOM_ACCESS_FILE_MODE);
                     currentPart.setLength(totalSize);
                     currentPart.close();
@@ -513,47 +513,29 @@ public class DownloadService extends Service implements Handler.Callback {
     private static String getExternalStoragePath() {
         // 获取SdCard状态
         String state = android.os.Environment.getExternalStorageState();
-
         // 判断SdCard是否存在并且是可用的
-
         if (android.os.Environment.MEDIA_MOUNTED.equals(state)) {
-
             if (android.os.Environment.getExternalStorageDirectory().canWrite()) {
-
                 return android.os.Environment.getExternalStorageDirectory()
                         .getPath();
-
             }
-
         }
-
         return null;
-
     }
 
     private static long getAvailableStore() {
         String path = getExternalStoragePath();
         if (path == null) return -1;
         // 取得sdcard文件路径
-
         StatFs statFs = new StatFs(path);
-
         // 获取block的SIZE
-
         long blocSize = statFs.getBlockSize();
-
         // 获取BLOCK数量
-
         // long totalBlocks = statFs.getBlockCount();
-
         // 可使用的Block的数量
-
         long availaBlock = statFs.getAvailableBlocks();
-
         // long total = totalBlocks * blocSize;
-
         return availaBlock * blocSize;
-
     }
 
     private void sendStartOrCompleteMessage(@DownloadFlag int status, String id) {
@@ -624,32 +606,32 @@ public class DownloadService extends Service implements Handler.Callback {
         DownLoadListener downLoadListener = mDownLoadListeners.get(msg.getData().getString(DownloadExtra.EXTRA_ID));
         switch (msg.what) {
             case DownloadFlag.NORMAL:
+                Cog.d(TAG, "Download Start " + msg.getData().getString(DownloadExtra.EXTRA_ID));
                 if (downLoadListener != null) {
-                    Cog.d(TAG, "Download Start " + msg.getData().getString(DownloadExtra.EXTRA_ID));
                     downLoadListener.onStart();
                 }
                 break;
             case DownloadFlag.WAITING:
+                Cog.d(TAG, "Download Waiting" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                 if (downLoadListener != null) {
-                    Cog.d(TAG, "Download Waiting" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                     downLoadListener.onWaiting();
                 }
                 break;
             case DownloadFlag.PROGRESS:
+                Cog.d(TAG, "Download Progress " + ((DownloadStatus) msg.obj).getPercent() + " id:" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                 if (downLoadListener != null) {
-                    Cog.d(TAG, "Download Progress " + ((DownloadStatus) msg.obj).getPercent() + " id:" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                     downLoadListener.onProgress((DownloadStatus) msg.obj);
                 }
                 break;
             case DownloadFlag.PAUSED:
+                Cog.d(TAG, "Download Pause" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                 if (downLoadListener != null) {
-                    Cog.d(TAG, "Download Pause" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                     downLoadListener.onPause();
                 }
                 break;
             case DownloadFlag.COMPLETED:
+                Cog.d(TAG, "Download Complete" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                 if (downLoadListener != null) {
-                    Cog.d(TAG, "Download Complete" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                     downLoadListener.onComplete();
                 }
                 if (mRateListener != null) {
@@ -665,20 +647,20 @@ public class DownloadService extends Service implements Handler.Callback {
                 }
                 break;
             case DownloadFlag.FAILED:
+                Cog.e(TAG, "Download Failure" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                 if (downLoadListener != null) {
-                    Cog.e(TAG, "Download Failure" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                     downLoadListener.onFailure((Integer) msg.obj);
                 }
                 break;
             case DownloadFlag.ERROR:
+                Cog.e(TAG, "Download Error" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                 if (downLoadListener != null) {
-                    Cog.e(TAG, "Download Error" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                     downLoadListener.onError((Exception) msg.obj);
                 }
                 break;
             case DownloadFlag.DELETED:
+                Cog.d(TAG, "Download Deleted" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                 if (downLoadListener != null) {
-                    Cog.d(TAG, "Download Deleted" + msg.getData().getString(DownloadExtra.EXTRA_ID));
                     downLoadListener.onDelete();
                 }
                 break;
