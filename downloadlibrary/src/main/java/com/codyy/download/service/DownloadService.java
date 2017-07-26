@@ -98,6 +98,7 @@ public class DownloadService extends Service implements Handler.Callback {
             mDownloadDao.closeDB();
         }
         mHandler = null;
+        mDownLoadListeners.clear();
         Cog.d(TAG, "DownloadService onDestroy");
     }
 
@@ -190,11 +191,29 @@ public class DownloadService extends Service implements Handler.Callback {
     /**
      * 接收下载状态
      *
-     * @param id           下载地址
+     * @param id           资源id
      * @param loadListener 监听
      */
     public void receiveDownloadStatus(@NonNull String id, @NonNull DownLoadListener loadListener) {
         mDownLoadListeners.put(id, loadListener);
+    }
+
+    /**
+     * 移除下载监听
+     *
+     * @param id 资源id
+     */
+    public void removeDownloadStatusListener(@NonNull String id) {
+        if (mDownLoadListeners.containsKey(id)) {
+            mDownLoadListeners.remove(id);
+        }
+    }
+
+    /**
+     * 移除所有下载监听
+     */
+    public void removeAllDownloadStatusListener() {
+        mDownLoadListeners.clear();
     }
 
     /**

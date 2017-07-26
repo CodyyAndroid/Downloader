@@ -9,8 +9,8 @@ android {
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion 26
-        versionCode 49
-        versionName "1.1.6"
+        versionCode 50
+        versionName "1.1.7"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -56,7 +56,7 @@ javadoc {
         author true
         version true
         links "http://docs.oracle.com/javase/7/docs/api"
-        title "下载库1.1.6"
+        title "下载库1.1.7"
     }
 }
 // 制作文档(Javadoc)

@@ -25,7 +25,7 @@ import java.util.Map;
  * 文件下载器
  * Created by lijian on 2017/6/7.
  *
- * @version 1.1.5
+ * @version 1.1.7
  */
 
 public class Downloader {
@@ -132,6 +132,7 @@ public class Downloader {
 
     /**
      * 同步已下载的记录
+     *
      * @param entity 下载记录
      * @return true:同步成功;false:服务未启动或同步失败
      */
@@ -274,7 +275,7 @@ public class Downloader {
     /**
      * 接收下载状态
      *
-     * @param id           下载地址
+     * @param id           下载资源ID
      * @param loadListener 状态监听
      */
     public void receiveDownloadStatus(@NonNull String id, @NonNull DownLoadListener loadListener) {
@@ -283,6 +284,26 @@ public class Downloader {
             mDownloadService.receiveDownloadStatus(id, loadListener);
         } else {
             mReceiveDownloadStatus.put(id, loadListener);
+        }
+    }
+
+    /**
+     * 移除下载状态监听
+     *
+     * @param id 下载资源ID
+     */
+    public void removeDownloadStatusListener(@NonNull String id) {
+        if (mDownloadService != null) {
+            mDownloadService.removeDownloadStatusListener(id);
+        }
+    }
+
+    /**
+     * 移除所有下载状态监听
+     */
+    public void removeAllDownloadStatusListener() {
+        if (mDownloadService != null) {
+            mDownloadService.removeAllDownloadStatusListener();
         }
     }
 
