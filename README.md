@@ -16,14 +16,14 @@ allprojects {
 ```
 dependencies {
             //如果项目中已有com.android.support.*包,则从Downloader中剔除;
-	        compile('com.github.CodyyAndroid:Downloader:1.1.6') {
+	        compile('com.github.CodyyAndroid:Downloader:1.1.7') {
                    exclude group: 'com.android.support'
             }
             //如果项目中无com.android.support.*包,则保留;
-            compile('com.github.CodyyAndroid:Downloader:1.1.6')
+            compile('com.github.CodyyAndroid:Downloader:1.1.7')
 	}
 
 ```
-## [API](https://jitpack.io/com/github/CodyyAndroid/Downloader/1.1.6/javadoc/)
+## [API](https://jitpack.io/com/github/CodyyAndroid/Downloader/1.1.7/javadoc/)
 
 

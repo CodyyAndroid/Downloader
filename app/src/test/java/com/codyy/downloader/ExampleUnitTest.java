@@ -2,6 +2,9 @@ package com.codyy.downloader;
 
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.junit.Assert.*;
 
 /**
@@ -12,6 +15,10 @@ import static org.junit.Assert.*;
 public class ExampleUnitTest {
     @Test
     public void addition_isCorrect() throws Exception {
-        assertEquals(4, 2 + 2);
+        Map<String,String> map=new HashMap<>();
+        map.put("1","111");
+        map.put("2","2222");
+        map.remove("1");
+        assertEquals(1,map.size());
     }
 }
