@@ -334,9 +334,9 @@ public class DownloadService extends Service implements Handler.Callback {
             if (mDownThreadMap.containsKey(id)) {
                 mDownThreadMap.get(id).pause();
                 mDownThreadMap.remove(id);
-                mDownloadDao.updateStatus(id, DownloadFlag.PAUSED);
-                sendPauseOrWaitingMessage(DownloadFlag.PAUSED, id);
             }
+            mDownloadDao.updateStatus(id, DownloadFlag.PAUSED);
+            sendPauseOrWaitingMessage(DownloadFlag.PAUSED, id);
         }
     }
 
