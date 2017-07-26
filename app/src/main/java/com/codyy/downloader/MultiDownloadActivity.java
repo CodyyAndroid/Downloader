@@ -25,6 +25,7 @@ import com.codyy.download.entity.DownloadEntity;
 import com.codyy.download.service.DownLoadListener;
 import com.codyy.download.service.DownloadRateListener;
 import com.codyy.download.service.DownloadStatus;
+import com.codyy.download.service.SimpleDownloadListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -252,7 +253,30 @@ public class MultiDownloadActivity extends AppCompatActivity {
         public void setDataToView(FileEntity data) {
             tvName.setText(data.getName());
             tvUrl.setText(data.getUrl());
-            Downloader.getInstance(itemView.getContext()).receiveDownloadStatus(tvUrl.getText().toString(), new DownLoadListener() {
+            Downloader.getInstance(itemView.getContext()).receiveDownloadStatus(tvUrl.getText().toString(), new SimpleDownloadListener() {
+                @Override
+                public void onWaiting() {
+                    btn.setText("等待");
+                }
+
+                @Override
+                public void onProgress(DownloadStatus status) {
+                    pb.setProgress((int) status.getPercentNumber());
+                    tvName.setText(status.getFormatStatusString());
+                }
+
+                @Override
+                public void onPause() {
+                    btn.setText("下载");
+                }
+
+                @Override
+                public void onComplete() {
+                    btn.setText("完成");
+                }
+
+            });
+           /* Downloader.getInstance(itemView.getContext()).receiveDownloadStatus(tvUrl.getText().toString(), new DownLoadListener() {
                 @Override
                 public void onStart() {
                     btn.setText("暂停");
@@ -296,7 +320,7 @@ public class MultiDownloadActivity extends AppCompatActivity {
                 public void onError(Exception e) {
                     Log.e("Download", " onError :" + e.getMessage());
                 }
-            });
+            });*/
         }
     }
 
