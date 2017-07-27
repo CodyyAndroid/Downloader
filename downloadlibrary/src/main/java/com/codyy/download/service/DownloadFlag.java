@@ -10,7 +10,7 @@ import java.lang.annotation.RetentionPolicy;
 /**
  * 文件下载状态
  * Created by lijian on 2017/6/7.
- * @version 0.2.9
+ * @version 1.1.8
  */
 @IntDef({DownloadFlag.NORMAL,
         DownloadFlag.WAITING,
@@ -20,7 +20,7 @@ import java.lang.annotation.RetentionPolicy;
         DownloadFlag.FAILED,
         DownloadFlag.ERROR,
         DownloadFlag.DELETED,
-        DownloadFlag.RATING})
+        DownloadFlag.RATE})
 @Documented
 @Retention(RetentionPolicy.SOURCE)
 public @interface DownloadFlag {
@@ -32,5 +32,5 @@ public @interface DownloadFlag {
     int FAILED = 9995;
     int ERROR = 9996;
     int DELETED = 9999;
-    int RATING = -1;
+    int RATE = -1;
 }
