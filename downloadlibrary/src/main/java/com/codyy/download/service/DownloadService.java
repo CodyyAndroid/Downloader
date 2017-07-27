@@ -273,7 +273,7 @@ public class DownloadService extends Service implements Handler.Callback {
      */
     private void sendRatingMessage(List<DownloadEntity> downloadEntities) {
         Message message = new Message();
-        message.what = DownloadFlag.RATING;
+        message.what = DownloadFlag.RATE;
         Bundle bundle = new Bundle();
         bundle.putString(DownloadExtra.EXTRA_RATE, DownloadStatus.formatRate(sRates));
         bundle.putInt(DownloadExtra.EXTRA_COUNT, downloadEntities.size());
@@ -683,7 +683,7 @@ public class DownloadService extends Service implements Handler.Callback {
                     downLoadListener.onDelete();
                 }
                 break;
-            case DownloadFlag.RATING:
+            case DownloadFlag.RATE:
                 if (mRateListener != null) {
 //                    Cog.d(TAG, "Download Rating" + msg.getData().getString(DownloadExtra.EXTRA_ID) + msg.getData().getString(DownloadExtra.EXTRA_RATE) + msg.getData().getInt(DownloadExtra.EXTRA_COUNT, 0));
                     mRateListener.onRate(msg.getData().getString(DownloadExtra.EXTRA_RATE), msg.getData().getInt(DownloadExtra.EXTRA_COUNT, 0));
@@ -693,6 +693,9 @@ public class DownloadService extends Service implements Handler.Callback {
         return true;
     }
 
+    /**
+     * 网络状态变换时,切换下载状态
+     */
     private class NetReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -708,7 +711,7 @@ public class DownloadService extends Service implements Handler.Callback {
                         startToDownload(context, Downloader.getInstance(context).isHoneyCombDownload());
                         break;
                     case NETWORK_WIFI:
-                        startToDownload(context, true);
+                        startToDownload(context, Downloader.getInstance(context).isWifiDownload());
                         break;
                     default:
                         startToDownload(context, false);
