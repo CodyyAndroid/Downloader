@@ -1,5 +1,6 @@
 package com.codyy.download.db;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
@@ -100,7 +101,7 @@ public class DownloadDaoImpl implements DownloadDao {
                     + "," + DownloadTable.COLUMN_NAME_EXTRA1
                     + "," + DownloadTable.COLUMN_NAME_EXTRA2
                     + ") values(?,?,?,?,?,?,?,?,?,?,?)";
-            Object[] bindArgs = {entry.getId(),entry.getUrl(), entry.getCurrent(), entry.getTotal(), entry.getSavePath(), entry.getName(), entry.getStatus(), entry.getThumbnails(), entry.getTime(), entry.getExtra1(), entry.getExtra2()};
+            Object[] bindArgs = {entry.getId(), entry.getUrl(), entry.getCurrent(), entry.getTotal(), entry.getSavePath(), entry.getName(), entry.getStatus(), entry.getThumbnails(), entry.getTime(), entry.getExtra1(), entry.getExtra2()};
             database.execSQL(sql, bindArgs);
             database.setTransactionSuccessful();
         } catch (Exception e) {
@@ -182,6 +183,30 @@ public class DownloadDaoImpl implements DownloadDao {
                 selectionArgs
         );
         return count > 0;*/
+    }
+
+    @Override
+    public synchronized boolean update(DownloadEntity entity) {
+        ContentValues values = new ContentValues(1);
+        values.put(DownloadTable.COLUMN_NAME_CURRENT_POSITION, entity.getCurrent());
+        values.put(DownloadTable.COLUMN_NAME_TOTAL_SIZE, entity.getTotal());
+        values.put(DownloadTable.COLUMN_NAME_DOWNLOAD_URL, entity.getUrl());
+        values.put(DownloadTable.COLUMN_NAME_SAVE_PATH, entity.getSavePath());
+        values.put(DownloadTable.COLUMN_NAME_TITLE, entity.getName());
+        values.put(DownloadTable.COLUMN_NAME_STATUS, entity.getStatus());
+        values.put(DownloadTable.COLUMN_NAME_THUMBNAILS, entity.getThumbnails());
+        values.put(DownloadTable.COLUMN_NAME_DOWNLOAD_TIME, entity.getTime());
+        values.put(DownloadTable.COLUMN_NAME_EXTRA1, entity.getExtra1());
+        values.put(DownloadTable.COLUMN_NAME_EXTRA2, entity.getExtra2());
+        String selection = DownloadTable.COLUMN_NAME_ID + DBSelection.SELECTION_EQUAL;
+        String[] selectionArgs = {entity.getId()};
+        int count = mDbHelper.getWritableDatabase().update(
+                DownloadTable.TABLE_NAME,
+                values,
+                selection,
+                selectionArgs
+        );
+        return count > 0;
     }
 
     @Override
@@ -284,7 +309,7 @@ public class DownloadDaoImpl implements DownloadDao {
                 selectionArgs,
                 null,
                 null,
-                "cast ("+ DownloadTable.COLUMN_NAME_DOWNLOAD_TIME+" as INTEGER)" + DBSelection.SELECTION_DESC
+                "cast (" + DownloadTable.COLUMN_NAME_DOWNLOAD_TIME + " as INTEGER)" + DBSelection.SELECTION_DESC
         );
         while (cursor.moveToNext()) {
             list.add(getDownloadEntity(cursor));
@@ -305,7 +330,7 @@ public class DownloadDaoImpl implements DownloadDao {
                 selectionArgs,
                 null,
                 null,
-               "cast ("+ DownloadTable.COLUMN_NAME_DOWNLOAD_TIME+" as INTEGER)" + DBSelection.SELECTION_DESC
+                "cast (" + DownloadTable.COLUMN_NAME_DOWNLOAD_TIME + " as INTEGER)" + DBSelection.SELECTION_DESC
         );
         while (cursor.moveToNext()) {
             list.add(getDownloadEntity(cursor));

@@ -25,7 +25,7 @@ import java.util.Map;
  * 文件下载器
  * Created by lijian on 2017/6/7.
  *
- * @version 1.1.8
+ * @version 1.1.9
  */
 
 public class Downloader {
@@ -201,6 +201,13 @@ public class Downloader {
         if (mDownloadService != null) {
             mDownloadService.pause(ids);
         }
+    }
+
+    /**
+     * 手动更新数据库(特殊业务使用)
+     */
+    public boolean update(DownloadEntity entity) {
+        return mDownloadService != null && mDownloadService.update(entity);
     }
 
     /**

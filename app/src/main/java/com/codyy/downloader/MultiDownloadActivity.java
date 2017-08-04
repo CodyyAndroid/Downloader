@@ -74,9 +74,10 @@ public class MultiDownloadActivity extends AppCompatActivity {
         recyclerView.setAdapter(new FileAdapter(mFileEntities));
 //        Downloader.getInstance(getApplicationContext()).download(getString(R.string.url_apk_file));
 //        Downloader.getInstance(getApplicationContext()).download(getString(R.string.url_small_file));
-        mEditText.setText(Formatter.formatFileSize(getBaseContext(), getAvailableStore(getExternalStoragePath()))+"/"+Formatter.formatFileSize(getBaseContext(), getTotalStore(getExternalStoragePath())));
+        mEditText.setText(Formatter.formatFileSize(getBaseContext(), getAvailableStore(getExternalStoragePath())) + "/" + Formatter.formatFileSize(getBaseContext(), getTotalStore(getExternalStoragePath())));
 
     }
+
     // 获取SD卡路径
     public static String getExternalStoragePath() {
         // 获取SdCard状态
@@ -98,6 +99,7 @@ public class MultiDownloadActivity extends AppCompatActivity {
         return null;
 
     }
+
     private String getAvailMemory() {// 获取android当前可用内存大小
 
         ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
@@ -107,6 +109,7 @@ public class MultiDownloadActivity extends AppCompatActivity {
 
         return Formatter.formatFileSize(getBaseContext(), mi.availMem);// 将获取的内存大小规格化
     }
+
     public static long getAvailableStore(String filePath) {
 
         // 取得sdcard文件路径
@@ -132,6 +135,7 @@ public class MultiDownloadActivity extends AppCompatActivity {
         return availableSpare;
 
     }
+
     public static long getTotalStore(String filePath) {
 
         // 取得sdcard文件路径
@@ -144,16 +148,17 @@ public class MultiDownloadActivity extends AppCompatActivity {
 
         // 获取BLOCK数量
 
-         long totalBlocks = statFs.getBlockCount();
+        long totalBlocks = statFs.getBlockCount();
 
         // 可使用的Block的数量
 
-         long total = totalBlocks * blocSize;
+        long total = totalBlocks * blocSize;
 
 
         return total;
 
     }
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         /*if (keyCode == KeyEvent.KEYCODE_DEL) {
@@ -217,6 +222,14 @@ public class MultiDownloadActivity extends AppCompatActivity {
         }
     }
 
+    public void update(View view) {
+        DownloadEntity entity = Downloader.getInstance(this).getDownloadRecord(getString(R.string.url_small_file));
+        if (entity != null && entity.getExtra2() != null) {
+            entity.setExtra2(new StringBuilder(entity.getExtra2()).append("\u0003").append("sultan").toString());
+            Downloader.getInstance(this).update(entity);
+        }
+    }
+
     class FileViewHolder extends RecyclerViewHolder<FileEntity> {
         TextView tvName;
         TextView tvUrl;
@@ -240,6 +253,7 @@ public class MultiDownloadActivity extends AppCompatActivity {
                         DownloadEntity entity = new DownloadEntity();
                         entity.setId(tvUrl.getText().toString());
                         entity.setUrl(tvUrl.getText().toString());
+                        entity.setExtra2("lijian");
                         Downloader.getInstance(itemView.getContext()).download(entity);
                     } else if ("暂停".equals(btn.getText().toString())) {
                         btn.setText("下载");
