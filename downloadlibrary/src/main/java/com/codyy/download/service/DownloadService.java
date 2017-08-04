@@ -360,6 +360,13 @@ public class DownloadService extends Service implements Handler.Callback {
     }
 
     /**
+     * 手动更新数据库
+     */
+    public boolean update(DownloadEntity entity) {
+        return mDownloadDao.update(entity);
+    }
+
+    /**
      * 获取所有下载记录
      *
      * @return 下载记录

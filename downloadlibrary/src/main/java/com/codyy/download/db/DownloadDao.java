@@ -53,6 +53,11 @@ public interface DownloadDao {
     boolean updateStatus(String id, @DownloadFlag int status);
 
     /**
+     * 手动更新数据(特殊情况使用)
+     */
+    boolean update(DownloadEntity entity);
+
+    /**
      * 更新保存路径
      */
     void updatePath(String id, String savePath);

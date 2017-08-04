@@ -50,6 +50,11 @@
             android:layout_height="wrap_content"
             android:onClick="queryAll"
             android:text="queryAll"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="update"
+            android:text="更新"/>
     </LinearLayout>
 
     <EditText
