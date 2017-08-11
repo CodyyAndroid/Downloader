@@ -71,9 +71,8 @@ public class MultiDownloadActivity extends AppCompatActivity {
 //        mFileEntities.add(new FileEntity("resource", "http://reserver.jxd.9itest.com:8091/res/view/mobile/download/video/e74f91af5dd74767b8ad96753b5fb3ee/19632d7b5cfe458b9fcfaef7811f88bb.do"));
         mFileEntities.add(new FileEntity("resource", "http://reserver.jxd.9itest.com:8091/res/view/mobile/download/video/08ca41aeeb7b4e4c9801d0e8b1408890/27254357585042d9b4950332aa7a36a9.do"));
         mFileEntities.add(new FileEntity("AndroidPDF", getString(R.string.url_small_file)));
+        mFileEntities.add(new FileEntity("OSP","http://srv.codyy.cn/images/9059e96d-98e5-44dc-b509-a46d11716960.apk/app.apk"));
         recyclerView.setAdapter(new FileAdapter(mFileEntities));
-//        Downloader.getInstance(getApplicationContext()).download(getString(R.string.url_apk_file));
-//        Downloader.getInstance(getApplicationContext()).download(getString(R.string.url_small_file));
         mEditText.setText(Formatter.formatFileSize(getBaseContext(), getAvailableStore(getExternalStoragePath())) + "/" + Formatter.formatFileSize(getBaseContext(), getTotalStore(getExternalStoragePath())));
 
     }
