@@ -472,7 +472,6 @@ public class DownloadService extends Service implements Handler.Callback {
                     new File(savePath).delete();
                     String contentDisposition = new String(conn.getHeaderField("Content-Disposition").getBytes("UTF-8"), "UTF-8");
                     String filename = contentDisposition.substring(contentDisposition.indexOf("=") + 1);
-//                    Cog.e("filename", filename.trim());
                     savePath = savePath.replace(".do", filename);
                     mDownloadDao.updatePath(id, savePath);
                 }
@@ -484,9 +483,9 @@ public class DownloadService extends Service implements Handler.Callback {
                     currentPart = new RandomAccessFile(savePath, DownloadExtra.RANDOM_ACCESS_FILE_MODE);
                     currentPart.setLength(totalSize);
                     currentPart.close();
-                    if (conn.getResponseCode() == 206) {
+                    if (conn.getResponseCode() == 206 || conn.getResponseCode() == 200) {
                         currentPart = new RandomAccessFile(savePath, DownloadExtra.RANDOM_ACCESS_FILE_MODE);
-                        currentPart.seek(range);
+                        currentPart.seek(conn.getResponseCode() == 200 ? 0 : range);
                         sendStartOrCompleteMessage(DownloadFlag.NORMAL, id);
                         inStream = conn.getInputStream();
                         byte[] buffer = new byte[4096];
@@ -499,7 +498,11 @@ public class DownloadService extends Service implements Handler.Callback {
                             } else {
                                 sRates = 0;
                             }
-                            mDownloadStatus = range == 0 ? new DownloadStatus(length, totalSize) : new DownloadStatus((length + mDownloadEntity.getCurrent()), totalSize);
+                            if (conn.getResponseCode() != 200) {
+                                mDownloadStatus = range == 0 ? new DownloadStatus(length, totalSize) : new DownloadStatus((length + mDownloadEntity.getCurrent()), totalSize);
+                            } else {
+                                mDownloadStatus = new DownloadStatus(length, totalSize);
+                            }
                             sendProgressMessage(mDownloadStatus, id);
                             if (mDownloadStatus.getPercentNumber() >= 100 && mHandler != null) {
                                 mDownloadDao.updateProgress(id, mDownloadStatus.getDownloadSize(), mDownloadStatus.getTotalSize(), DownloadFlag.COMPLETED);
@@ -692,7 +695,6 @@ public class DownloadService extends Service implements Handler.Callback {
                 break;
             case DownloadFlag.RATE:
                 if (mRateListener != null) {
-//                    Cog.d(TAG, "Download Rating" + msg.getData().getString(DownloadExtra.EXTRA_ID) + msg.getData().getString(DownloadExtra.EXTRA_RATE) + msg.getData().getInt(DownloadExtra.EXTRA_COUNT, 0));
                     mRateListener.onRate(msg.getData().getString(DownloadExtra.EXTRA_RATE), msg.getData().getInt(DownloadExtra.EXTRA_COUNT, 0));
                 }
                 break;
