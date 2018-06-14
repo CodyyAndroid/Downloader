@@ -1,10 +1,16 @@
 package com.codyy.downloader;
 
+import android.Manifest;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.StatFs;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,11 +24,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.codyy.download.Downloader;
 import com.codyy.download.entity.DownloadEntity;
-import com.codyy.download.service.DownLoadListener;
 import com.codyy.download.service.DownloadRateListener;
 import com.codyy.download.service.DownloadStatus;
 import com.codyy.download.service.SimpleDownloadListener;
@@ -70,11 +74,82 @@ public class MultiDownloadActivity extends AppCompatActivity {
 //        mFileEntities.add(new FileEntity("resource", "http://reserver.9itest.com:8081/res/view/mobile/download/video/d908232052b84ef0bfa10152067339b8/396face834ca48dab37ad22c6323573b.do"));
 //        mFileEntities.add(new FileEntity("resource", "http://reserver.jxd.9itest.com:8091/res/view/mobile/download/video/e74f91af5dd74767b8ad96753b5fb3ee/19632d7b5cfe458b9fcfaef7811f88bb.do"));
         mFileEntities.add(new FileEntity("resource", "http://reserver.jxd.9itest.com:8091/res/view/mobile/download/video/08ca41aeeb7b4e4c9801d0e8b1408890/27254357585042d9b4950332aa7a36a9.do"));
-        mFileEntities.add(new FileEntity("AndroidPDF", getString(R.string.url_small_file)));
-        mFileEntities.add(new FileEntity("OSP","http://srv.codyy.cn/images/9059e96d-98e5-44dc-b509-a46d11716960.apk/app.apk"));
+        mFileEntities.add(new FileEntity("TeamViewer_Setup", "http://mock.5idoo.com/file/TeamViewer_Setup.exe"));
+        mFileEntities.add(new FileEntity("OSP", "http://srv.codyy.cn/images/9059e96d-98e5-44dc-b509-a46d11716960.apk/app.apk"));
         recyclerView.setAdapter(new FileAdapter(mFileEntities));
-        mEditText.setText(Formatter.formatFileSize(getBaseContext(), getAvailableStore(getExternalStoragePath())) + "/" + Formatter.formatFileSize(getBaseContext(), getTotalStore(getExternalStoragePath())));
+        checkPermission();
+    }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case 2018: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+                    mEditText.setText(Formatter.formatFileSize(getBaseContext(), getAvailableStore(getExternalStoragePath())) + "/" + Formatter.formatFileSize(getBaseContext(), getTotalStore(getExternalStoragePath())));
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
+    }
+
+    private boolean getPermission() {
+        return ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void checkPermission() {
+        // Here, thisActivity is the current activity
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+
+                // Show an expanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+                new AlertDialog.Builder(this).setCancelable(false).setMessage("您未授予下载权限,将无法下载文件,是否授予权限?").setTitle("提示").setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ActivityCompat.requestPermissions(MultiDownloadActivity.this,
+                                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                2018);
+                    }
+                }).setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                }).create().show();
+            } else {
+
+                // No explanation needed, we can request the permission.
+
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        2018);
+
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
+            }
+        }
     }
 
     // 获取SD卡路径
@@ -248,6 +323,10 @@ public class MultiDownloadActivity extends AppCompatActivity {
             btn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    if (!getPermission()) {
+                        checkPermission();
+                        return;
+                    }
                     if ("下载".equals(btn.getText().toString())) {
                         DownloadEntity entity = new DownloadEntity();
                         entity.setId(tvUrl.getText().toString());
