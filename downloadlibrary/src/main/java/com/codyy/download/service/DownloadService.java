@@ -478,7 +478,7 @@ public class DownloadService extends Service implements Handler.Callback {
                 if (totalSize > getAvailableStore()) {
                     Cog.e(TAG, "存储空间不足,total=" + totalSize + " availableStore=" + getAvailableStore());
                     LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(new Intent(Downloader.ACTION_DOWNLOAD_OUT_OF_MEMORY));
-                    throw new IOException("存储空间不足");
+//                    throw new IOException("存储空间不足");
                 } else {
                     currentPart = new RandomAccessFile(savePath, DownloadExtra.RANDOM_ACCESS_FILE_MODE);
                     currentPart.setLength(totalSize);
@@ -828,7 +828,7 @@ public class DownloadService extends Service implements Handler.Callback {
     private static NetworkInfo getActiveNetworkInfo(Context context) {
         ConnectivityManager cm = (ConnectivityManager) context
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
-        return cm.getActiveNetworkInfo();
+        return cm == null ? null : cm.getActiveNetworkInfo();
     }
 
     public void setWifiDownload(boolean wifiDownload) {
